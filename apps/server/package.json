@@ -32,11 +32,13 @@
     "@types/node": "^20.9.2",
     "@vitest/coverage-v8": "^0.34.6",
     "pino-pretty": "^10.2.3",
+    "prisma": "^5.6.0",
     "vitest": "^0.34.6"
   },
   "dependencies": {
     "@fastify/cors": "^8.4.1",
     "@fastify/rate-limit": "^9.0.0",
+    "@prisma/client": "^5.6.0",
     "fastify": "^4.24.3",
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
