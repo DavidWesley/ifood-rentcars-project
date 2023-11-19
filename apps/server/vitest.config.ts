@@ -21,7 +21,7 @@ export default defineConfig({
       exclude: configDefaults.coverage.exclude,
       provider: "v8",
       reporter: ["text", "html-spa"],
-      reportsDirectory: "./test/coverage"
+      reportsDirectory: "./tests/unit/coverage"
     }
   }
 })

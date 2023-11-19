@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": [
+    "../../tsconfig.shared.json"
+  ],
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": false,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "lib": [ "DOM", "ES2022" ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": false,
+    "checkJs": false,
+    "removeComments": false,
+    "downlevelIteration": true,
+    "resolveJsonModule": true,
+    "incremental": true,
+
+    "baseUrl": ".",
+    "composite": true,
+    "outDir": "dist",
+    "paths": {
+      "@/*": [ "./src/*" ]
+    }
+  },
+  "include": [ "src", "test" ],
+  "exclude": [ "node_modules/*", "dist/*" ]
+}
