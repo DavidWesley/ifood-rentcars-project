@@ -4,9 +4,11 @@
     "js"
   ],
   "cSpell.words": [
+    "axios",
+    "bootcamp",
     "fastify",
-    "tsup",
-    "axios"
+    "rentcars",
+    "tsup"
   ],
   "editor.formatOnSave": true,
   "typescript.suggest.autoImports": true,
