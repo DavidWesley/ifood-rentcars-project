@@ -1,10 +1,18 @@
 {
-  "name": "ts-config-template",
-  "version": "0.0.2",
-  "description": "Inicializar um repositório typescript com todas as configurações necessárias",
+  "name": "ifood-rentcars-project",
+  "version": "0.0.1",
+  "description": "Projeto de aluguel de carros do ifood",
   "private": "true",
   "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DavidWesley/ifood-rentcars-project.git"
+  },
   "scripts": {
+    "build": "",
     "test": "vitest --watch false",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -18,7 +26,26 @@
     "email": "contato.dwesley@outlook.com",
     "url": "https://github.com/DavidWesley"
   },
-  "license": "ISC",
+  "contributors": [
+    {
+      "name": "dyda91",
+      "url": "https://github.com/dyda91"
+    },
+    {
+      "name": "RudsonSantana",
+      "url": "https://github.com/RudsonSantana"
+    },
+    {
+      "name": "corujaglaukopis",
+      "url": "https://github.com/corujaglaukopis"
+    },
+    {
+      "name": "DavidWesley",
+      "url": "https://github.com/DavidWesley"
+    }
+  ],
+  "license": "LGPL-3.0-only",
+  "homepage": "https://github.com/DavidWesley/ifood-rentcars-project",
   "devDependencies": {
     "@commitlint/cli": "^18.4.2",
     "@commitlint/config-conventional": "^18.4.2",
