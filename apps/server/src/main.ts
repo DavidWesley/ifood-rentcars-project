@@ -3,7 +3,7 @@ import { server } from "@/server.ts"
 
 server.listen(
     {
-        port: ENV.PORT ?? 3333,
+        port: ENV.PORT,
         host: ENV.NODE_ENV === "production" ? "0.0.0.0" : "localhost",
     },
     (err, address) => {
