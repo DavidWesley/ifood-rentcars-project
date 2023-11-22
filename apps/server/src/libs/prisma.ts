@@ -1,4 +1,5 @@
 import { ENV } from "@/libs/env.ts"
+import type { Prisma } from "@prisma/client"
 import { PrismaClient } from "@prisma/client"
 
 declare global {
@@ -6,7 +7,7 @@ declare global {
     var prisma: PrismaClient | undefined
 }
 
-export const prismaClientOptions = {
+export const prismaClientOptions: Prisma.PrismaClientOptions = {
     log: [
         { emit: "event", level: "query" },
         { emit: "stdout", level: "error" },
