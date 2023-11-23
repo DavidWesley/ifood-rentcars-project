@@ -6,10 +6,6 @@ import { StatusCodes } from "http-status-codes"
 import { ENV } from "@/libs/env.ts"
 import { logger } from "@/libs/logger.ts"
 
-// import { authRoutes } from "@/routes/auth.ts"
-// import { tasksRoutes } from "@/routes/tasks.ts"
-// import { usersRoutes } from "@/routes/users.ts"
-
 export const server = Fastify({
     logger: logger[ENV.NODE_ENV] ?? false,
     requestTimeout: 40 * 1_000, // 40 seconds
@@ -36,6 +32,3 @@ server.get("/check", async (_, res) => {
 })
 
 //// ROUTES ////
-// server.register(tasksRoutes, { prefix: "/tasks" })
-// server.register(usersRoutes, { prefix: "/users" })
-// server.register(authRoutes, { prefix: "/auth" })
