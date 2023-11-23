@@ -1,4 +1,5 @@
-import { LicenseTypeEnum } from "@/models/customer.ts"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { BaseCustomerProps, LicenseTypeEnum } from "@/models/customer.ts"
 import { InvoiceModel, InvoiceProps } from "@/models/invoice.ts"
 import { beforeEach, describe, expect, it } from "vitest"
 
