@@ -4,8 +4,8 @@ import { CustomerModel } from "@/models/customer.ts"
 import { UUID } from "@/utils/id.ts"
 
 class CustomerRepository implements Repository<CustomerModel> {
-    async create(data: CustomerModel): Promise<UUID | undefined> {
-        await prisma.customer.create({
+    async create(data: CustomerModel): Promise<void> {
+        return await prisma.customer.create({
             data: {
                 id: data.id,
                 name: data.name,
@@ -18,29 +18,77 @@ class CustomerRepository implements Repository<CustomerModel> {
             },
         })
     }
-    findAll(): Promise<CustomerModel[]> {
-        throw new Error("Method not implemented.")
+    async findAll(): Promise<CustomerModel[]> {
+        const customers = await prisma.customer.findMany()
+
+        return customers as CustomerModel[]
     }
-    findById(id: UUID): Promise<CustomerModel | null> {
-        throw new Error("Method not implemented.")
+
+    async findById(id: UUID): Promise<CustomerModel | null> {
+        const customer = await prisma.customer.findUnique({
+            where: {
+                id: id.toString(),
+            },
+        })
+
+        if (customer != null) return customer as CustomerModel
+        else return null
     }
-    findOne(filters: Partial<CustomerModel>): Promise<CustomerModel | null> {
-        throw new Error("Method not implemented.")
+
+    async findOne(filters: Partial<CustomerModel>): Promise<CustomerModel | null> {
+        const customer = await prisma.customer.findFirst({
+            where: filters,
+        })
+
+        if (customer) return customer as CustomerModel
+        else return null
     }
-    update(id: UUID, data: Partial<CustomerModel>): Promise<void> {
-        throw new Error("Method not implemented.")
+
+    async update(id: UUID, data: Partial<CustomerModel>): Promise<void> {
+        await prisma.customer.update({
+            where: {
+                id: id.toString(),
+            },
+            data,
+        })
     }
-    updateMany(filters: Partial<CustomerModel>, data: Partial<CustomerModel>): Promise<number> {
-        throw new Error("Method not implemented.")
+
+    async updateMany(filters: Partial<CustomerModel>, data: Partial<CustomerModel>): Promise<number> {
+        const customers = await prisma.customer
+            .updateMany({
+                where: filters,
+                data,
+            })
+            .count()
+
+        return customers
     }
-    delete(id: UUID): Promise<boolean> {
-        throw new Error("Method not implemented.")
+
+    async delete(id: UUID): Promise<boolean> {
+        await prisma.customer.delete({
+            where: {
+                id,
+            },
+        })
+        return true
     }
-    deleteMany(filters: Partial<CustomerModel>): Promise<number> {
-        throw new Error("Method not implemented.")
+
+    async deleteMany(filters: Partial<CustomerModel>): Promise<number> {
+        const customers = await prisma.customer
+            .deleteMany({
+                where: filters,
+            })
+            .count()
+
+        return customers
     }
-    count(filters: Partial<CustomerModel>): Promise<number> {
-        throw new Error("Method not implemented.")
+
+    async count(filters: Partial<CustomerModel>): Promise<number> {
+        const customers = await prisma.customer.count({
+            where: filters,
+        })
+
+        return customers
     }
 }
 
