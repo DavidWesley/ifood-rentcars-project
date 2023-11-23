@@ -3,9 +3,11 @@ import { prisma } from "@/libs/prisma.ts"
 import { CustomerModel } from "@/models/customer.ts"
 import { UUID } from "@/utils/id.ts"
 
-class CustomerRepository implements Repository<CustomerModel> {
+export interface CustomerRepositoryInterface<Model extends CustomerModel> extends Repository<Model> {}
+
+class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
     async create(data: CustomerModel): Promise<void> {
-        return await prisma.customer.create({
+        await prisma.customer.create({
             data: {
                 id: data.id,
                 name: data.name,
@@ -18,6 +20,7 @@ class CustomerRepository implements Repository<CustomerModel> {
             },
         })
     }
+
     async findAll(): Promise<CustomerModel[]> {
         const customers = await prisma.customer.findMany()
 
@@ -31,7 +34,7 @@ class CustomerRepository implements Repository<CustomerModel> {
             },
         })
 
-        if (customer != null) return customer as CustomerModel
+        if (customer !== null) return customer as CustomerModel
         else return null
     }
 
@@ -54,41 +57,39 @@ class CustomerRepository implements Repository<CustomerModel> {
     }
 
     async updateMany(filters: Partial<CustomerModel>, data: Partial<CustomerModel>): Promise<number> {
-        const customers = await prisma.customer
-            .updateMany({
-                where: filters,
-                data,
-            })
-            .count()
+        const { count } = await prisma.customer.updateMany({
+            where: filters,
+            data,
+        })
 
-        return customers
+        return count
     }
 
-    async delete(id: UUID): Promise<boolean> {
-        await prisma.customer.delete({
+    async remove(id: UUID): Promise<boolean> {
+        const deletedCustomer = await prisma.customer.delete({
             where: {
                 id,
             },
         })
-        return true
+
+        if (deletedCustomer) return true
+        else return false
     }
 
-    async deleteMany(filters: Partial<CustomerModel>): Promise<number> {
-        const customers = await prisma.customer
-            .deleteMany({
-                where: filters,
-            })
-            .count()
-
-        return customers
-    }
-
-    async count(filters: Partial<CustomerModel>): Promise<number> {
-        const customers = await prisma.customer.count({
+    async removeMany(filters: Partial<CustomerModel>): Promise<number> {
+        const { count } = await prisma.customer.deleteMany({
             where: filters,
         })
 
-        return customers
+        return count
+    }
+
+    async count(filters: Partial<CustomerModel>): Promise<number> {
+        const counter = await prisma.customer.count({
+            where: filters,
+        })
+
+        return counter
     }
 }
 
