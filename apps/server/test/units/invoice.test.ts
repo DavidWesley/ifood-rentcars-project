@@ -1,40 +1,76 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { BaseCustomerProps, LicenseTypeEnum } from "@/models/customer.ts"
-import { InvoiceModel, InvoiceProps } from "@/models/invoice.ts"
-import { beforeEach, describe, expect, it } from "vitest"
+import { CustomerModel, LicenseTypeEnum } from "@/models/customer.ts";
+import { RentalModel } from "@/models/rental.ts";
+import { InvoiceModel } from "@/models/invoice.ts";
+import { VehicleTypeEnum, VehicleModel, BaseVehicleProps } from "@/models/vehicle.ts";
+import { beforeEach, describe, expect, it } from "vitest";
 
 describe("InvoiceModel", () => {
-    let invoice: InvoiceModel
-    let invoiceProps: InvoiceProps
-    let baseCustomerProps: BaseCustomerProps
+  let invoice: InvoiceModel;
+  let customer: CustomerModel;
+  let rentals: RentalModel[];
+  let expiresAt: Date;
 
-    beforeEach(() => {
-        baseCustomerProps = {
-            name: "John Doe",
-            email: "john@example.com",
-            cpf: "123.456.789-00",
-            licenseType: LicenseTypeEnum.AB,
-            birthDate: new Date("1990-01-01"),
-            gender: "male",
-        }
+  beforeEach(() => {
+    customer = {
+      name: "John Doe",
+      email: "john@example.com",
+      cpf: "123.456.789-00",
+      licenseType: LicenseTypeEnum.AB,
+      birthDate: new Date("1990-01-01"),
+      gender: "male",
+      points: 0,
+      id: "1-2-3-4-5-6",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-        invoiceProps = {
-            customerId: customerId,
-            costDetails: "",
-            rentals: [rental],
-        }
+    const vehicleProps1: BaseVehicleProps = {
+      plate: "ABC123",
+      vehicleType: VehicleTypeEnum.CAR,
+      brand: "Toyota",
+      model: "Corolla",
+      manufacturingYear: 2020,
+      color: "black",
+      available: true,
+      hourlyRentalRate: 50,
+    };
 
-        invoice = new InvoiceModel(invoiceProps)
-    })
+    const vehicleProps2: BaseVehicleProps = {
+      plate: "DEF123",
+      vehicleType: VehicleTypeEnum.CAR,
+      brand: "Honda",
+      model: "Civic",
+      manufacturingYear: 2021,
+      color: "black",
+      available: true,
+      hourlyRentalRate: 50,
+    };
 
-    it("should create a new invoice", () => {
-        expect(invoice).toBeDefined()
-    })
+    const startDate = new Date("2023-11-01");
+    const endDate = new Date("2023-11-05");
 
-    it("should have correct properties", () => {
-        expect(invoice.id).toBe(invoiceProps.id)
-        expect(invoice.customerId).toBe(invoiceProps.customerId)
-        expect(invoice.costDetails).toBe(invoiceProps.costDetails)
-        expect(invoice.rentals).toEqual(invoiceProps.rentals)
-    })
-})
+    const vehicle1 = new VehicleModel(vehicleProps1);
+    const vehicle2 = new VehicleModel(vehicleProps2);
+
+    const rental1 = new RentalModel(customer, vehicle1, startDate, endDate);
+    const rental2 = new RentalModel(customer, vehicle2, startDate, endDate);
+
+    rentals = [rental1, rental2];
+
+    expiresAt = new Date("2023-12-31");
+
+    invoice = new InvoiceModel(customer, rentals, expiresAt);
+  });
+
+  it("should create a new InvoiceModel instance", () => {
+    expect(invoice).toBeInstanceOf(InvoiceModel);
+  });
+
+  it("should have correct initial values", () => {
+    expect(invoice.customer).toBe(customer);
+    expect(invoice.rentals).toBe(rentals);
+    expect(invoice.expiresAt).toBe(expiresAt);
+    expect(invoice.state).toBe("opened");
+  });
+
+});
