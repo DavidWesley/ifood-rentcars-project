@@ -1,4 +1,4 @@
-import { BaseCustomerProps, CustomerModel, LicenseTypeEnum } from "@/models/customer.ts"
+import { BaseCustomerProps, CustomerModel, LicenseTypeEnum } from "@/models/customer/customer.ts"
 import { beforeEach, describe, expect, it } from "vitest"
 
 describe("CustomerModel", () => {

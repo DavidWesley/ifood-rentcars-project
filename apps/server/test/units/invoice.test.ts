@@ -1,7 +1,7 @@
-import { CustomerModel, LicenseTypeEnum } from "@/models/customer.ts";
-import { RentalModel } from "@/models/rental.ts";
-import { InvoiceModel } from "@/models/invoice.ts";
-import { VehicleTypeEnum, VehicleModel, BaseVehicleProps } from "@/models/vehicle.ts";
+import { CustomerModel, LicenseTypeEnum } from "@/models/customer/customer.ts";
+import { InvoiceModel } from "@/models/invoice/invoice.ts";
+import { RentalModel } from "@/models/rental/rental.ts";
+import { BaseVehicleProps, VehicleModel, VehicleTypeEnum } from "@/models/vehicle/vehicle.ts";
 import { beforeEach, describe, expect, it } from "vitest";
 
 describe("InvoiceModel", () => {
