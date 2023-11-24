@@ -18,9 +18,33 @@ export class RentalCarsSystem extends System {
         super(customerRepo, carRepo, rentalRepo, invoiceRepo)
     }
 
-    addCar(carDetails: BaseCarProps): void {}
+    async addCar(props: BaseCarProps): Promise<void> {
+        if ((await this.vehicleRepo.findByPlate(props.plate)) !== null) {
+            throw new Error(`Already exists car with this plate: ${props.plate}`)
+        }
 
-    rentCar(customerId: string, vehicleId: string, startDate: Date, endDate: Date): void {}
+        const car = new Car(props)
+
+        this.vehicleRepo.create(car)
+    }
+
+    async rentCar(customerId: string, vehicleId: string, startDate: Date, endDate: Date): Promise<boolean> {
+        const customer = await this.customerRepo.findById(customerId)
+        if (customer === null) throw new Error(`Invalid Customer`)
+
+        this.rentalRepo.findOne({ customerId: customer.id, state: "active" })
+
+        const car = await this.vehicleRepo.findById(vehicleId)
+        if (car === null) throw new Error(`Invalid Car`)
+
+        if (customer.licenseType.includes("B") === false) throw new Error("Cliente não pode alugar o carro porque não tem habilitação necessária")
+        if (startDate >= endDate) throw new Error("Invalid Dates")
+        if (car.isAvailable() === false) return false
+
+        // Lógica do aluguel de carros
+        this.vehicleRepo.update(vehicleId, { available: false, popularity: car.popularity + 1 })
+        this.customerRepo.update()
+    }
 
     returnCar(rentalId: string): void {}
 
