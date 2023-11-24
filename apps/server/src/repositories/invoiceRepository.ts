@@ -1,9 +1,14 @@
 import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
+import { CustomerModel } from "@/models/customer/customer.ts"
 import { InvoiceModel } from "@/models/invoice/invoice.ts"
+import { RentalModel } from "@/models/rental/rental.ts"
 import { UUID } from "@/utils/id.ts"
 
-export interface InvoiceRepositoryInterface<Model extends InvoiceModel> extends Repository<Model> {}
+export interface InvoiceRepositoryInterface<Model extends InvoiceModel> extends Repository<Model> {
+    findInvoicesByCustomerId(customerId: CustomerModel["id"]): Promise<InvoiceModel | null>
+    findInvoicesByRentalId(rentalId: RentalModel["id"]): Promise<InvoiceModel | null>
+}
 
 class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
     async create(data: InvoiceModel): Promise<void> {
@@ -85,6 +90,33 @@ class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
         })
 
         return counter
+    }
+
+    //// ADDITIONAL METHODS ////
+    async findInvoicesByCustomerId(customerId: CustomerModel["id"]): Promise<InvoiceModel | null> {
+        const invoice = await prisma.invoice.findFirst({
+            where: {
+                customerId: customerId,
+            },
+        })
+
+        if (invoice) return invoice as InvoiceModel
+        else return null
+    }
+
+    async findInvoicesByRentalId(rentalId: RentalModel["id"]): Promise<InvoiceModel | null> {
+        const invoice = await prisma.invoice.findFirst({
+            where: {
+                rentals: {
+                    some: {
+                        id: rentalId,
+                    },
+                },
+            },
+        })
+
+        if (invoice) return invoice as InvoiceModel
+        else return null
     }
 }
 
