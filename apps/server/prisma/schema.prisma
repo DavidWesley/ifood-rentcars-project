@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model VehicleType {
+  id           Int     @id @default(autoincrement())
+  vehicle_type String  @unique
+  description  String
+  tax          Decimal
+
+  Vehicle Vehicle[]
+}
+
+model LicenseType {
+  id          Int    @id @default(autoincrement())
+  type        String @unique
+  description String
+
+  Customer   Customer? @relation(fields: [customerId], references: [id])
+  customerId String?
+
+  @@map("license_types")
+}
+
+model Vehicle {
+  id                String @id @default(uuid())
+  plate             String @unique
+  model             String
+  brand             String
+  manufacturingYear Int
+  color             String
+
+  hourlyRentalRate Decimal
+  available        Boolean @default(true)
+  popularity       Int
+
+  vehicleType   VehicleType @relation(fields: [vehicleTypeId], references: [id])
+  vehicleTypeId Int
+
+  @@map(name: "vehicles")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  cpf       String   @unique
+  birthDate DateTime
+  gender    String
+
+  licenseType LicenseType[]
+  points      Int
+
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updateAt  DateTime @updatedAt
+
+  @@map(name: "customers")
+}
+
+model Rental {
+  id         String   @id @default(uuid())
+  customerId String   @unique
+  vehicleId  String   @unique
+  startDate  DateTime
+  endDate    DateTime
+
+  ammount Decimal
+  state   String  @default("active")
+
+  Invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+  invoiceId String?
+
+  @@map(name: "rentals")
+}
+
+model Invoice {
+  id         String @id @default(uuid())
+  customerId String @unique
+  state      String @default("open")
+
+  rentals       Rental[]
+  extraServices ExtraService[]
+
+  @@map(name: "invoices")
+}
+
+model ExtraService {
+  id          String  @id @default(uuid())
+  description String
+  amount      Decimal
+
+  Invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+  invoiceId String?
+}
