@@ -3,7 +3,9 @@ import { prisma } from "@/libs/prisma.ts"
 import { CustomerModel } from "@/models/customer/customer.ts"
 import { UUID } from "@/utils/id.ts"
 
-export interface CustomerRepositoryInterface<Model extends CustomerModel> extends Repository<Model> {}
+export interface CustomerRepositoryInterface<Model extends CustomerModel> extends Repository<Model> {
+    findByCPF(cpf: string): Promise<CustomerModel | null>
+}
 
 class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
     async create(data: CustomerModel): Promise<void> {
@@ -90,6 +92,19 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
         })
 
         return counter
+    }
+
+    //// ADDITIONAL METHODS ////
+
+    async findByCPF(cpf: string): Promise<CustomerModel | null> {
+        const customer = await prisma.customer.findFirst({
+            where: {
+                cpf: cpf,
+            },
+        })
+
+        if (customer !== null) return customer as CustomerModel
+        else return null
     }
 }
 
