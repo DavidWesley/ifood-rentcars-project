@@ -3,9 +3,11 @@ import { prisma } from "@/libs/prisma.ts"
 import { VehicleModel } from "@/models/vehicle.ts"
 import { UUID } from "@/utils/id.ts"
 
-class VehicleRepository implements Repository<VehicleModel> {
+export interface VehicleRepositoryInterface<Model extends VehicleModel> extends Repository<Model> {}
+
+class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
     async create(data: VehicleModel): Promise<void> {
-        return await prisma.vehicle.create({
+        await prisma.vehicle.create({
             data: {
                 id: data.id,
                 plate: data.plate,
@@ -16,6 +18,7 @@ class VehicleRepository implements Repository<VehicleModel> {
                 color: data.color,
                 available: data.available,
                 hourlyRentalRate: data.hourlyRentalRate,
+                popularity: data.popularity,
             },
         })
     }
@@ -55,41 +58,39 @@ class VehicleRepository implements Repository<VehicleModel> {
     }
 
     async updateMany(filters: Partial<VehicleModel>, data: Partial<VehicleModel>): Promise<number> {
-        const vehicles = await prisma.vehicle
-            .updateMany({
-                where: filters,
-                data,
-            })
-            .count()
+        const updatedVehiclesInfo = await prisma.vehicle.updateMany({
+            where: filters,
+            data,
+        })
 
-        return vehicles
+        return updatedVehiclesInfo.count
     }
 
-    async delete(id: UUID): Promise<boolean> {
-        await prisma.vehicle.delete({
+    async remove(id: UUID): Promise<boolean> {
+        const removedVehicle = await prisma.vehicle.delete({
             where: {
                 id,
             },
         })
-        return true
+
+        if (removedVehicle) return true
+        else return false
     }
 
-    async deleteMany(filters: Partial<VehicleModel>): Promise<number> {
-        const vehicles = await prisma.vehicle
-            .deleteMany({
-                where: filters,
-            })
-            .count()
-
-        return vehicles
-    }
-
-    async count(filters: Partial<VehicleModel>): Promise<number> {
-        const vehicles = await prisma.vehicle.count({
+    async removeMany(filters: Partial<VehicleModel>): Promise<number> {
+        const removedVehiclesInfo = await prisma.vehicle.deleteMany({
             where: filters,
         })
 
-        return vehicles
+        return removedVehiclesInfo.count
+    }
+
+    async count(filters: Partial<VehicleModel>): Promise<number> {
+        const counter = await prisma.vehicle.count({
+            where: filters,
+        })
+
+        return counter
     }
 }
 
