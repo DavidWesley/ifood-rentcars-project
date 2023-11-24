@@ -1,5 +1,5 @@
 import { ModelProps } from "@/interfaces/model.ts"
-import { UUID, createUUID } from "@/utils/id.ts"
+import { UUID, createUUID, validateUUID } from "@/utils/id.ts"
 
 import { CustomerModel } from "@/models/customer/customer.ts"
 import { VehicleModel } from "@/models/vehicle/vehicle.ts"
@@ -44,5 +44,9 @@ export class RentalModel implements RentalProps, RentalMethods {
 
     public calculateTotalAmount(): number {
         return 4800
+    }
+
+    static validateRentalId(id: string): id is RentalModel["id"] {
+        return validateUUID(id)
     }
 }
