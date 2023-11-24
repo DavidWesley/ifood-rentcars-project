@@ -1,5 +1,5 @@
 import { ModelProps } from "@/interfaces/model.ts"
-import { UUID, createUUID } from "@/utils/id.ts"
+import { UUID, createUUID, validateUUID } from "@/utils/id.ts"
 
 export enum VehicleTypeEnum {
     CAR = "car",
@@ -59,5 +59,9 @@ export class VehicleModel implements VehicleModelProps, VehicleModelMethods {
         this.id = createUUID()
         this.createdAt = new Date()
         this.updatedAt = this.createdAt
+    }
+
+    static validateVehicleId(id: string): id is VehicleModel["id"] {
+        return validateUUID(id)
     }
 }

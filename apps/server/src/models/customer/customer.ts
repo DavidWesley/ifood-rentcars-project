@@ -1,5 +1,5 @@
 import { ModelProps } from "@/interfaces/model.ts"
-import { UUID, createUUID } from "@/utils/id.ts"
+import { UUID, createUUID, validateUUID } from "@/utils/id.ts"
 
 export enum LicenseTypeEnum {
     A = "A",
@@ -52,5 +52,9 @@ export class CustomerModel implements CustomerProps, CustomerMethods {
         this.points = 0
         this.createdAt = new Date()
         this.updatedAt = this.createdAt
+    }
+
+    static validaCustomerId(id: string): id is CustomerModel["id"] {
+        return validateUUID(id)
     }
 }
