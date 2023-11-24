@@ -3,15 +3,17 @@ import { prisma } from "@/libs/prisma.ts"
 import { RentalModel } from "@/models/rental.ts"
 import { UUID } from "@/utils/id.ts"
 
-class RentalRepository implements Repository<RentalModel> {
+export interface RentalRepositoryInterface<Model extends RentalModel> extends Repository<Model> {}
+class RentalRepository implements RentalRepositoryInterface<RentalModel> {
     async create(data: RentalModel): Promise<void> {
-        return await prisma.rental.create({
+        await prisma.rental.create({
             data: {
                 id: data.id,
-                costumer: data.costumer,
-                vehicle: data.vehicle,
+                customerId: data.costumer.id,
+                vehicleId: data.vehicle.id,
                 startDate: data.startDate,
                 endDate: data.endDate,
+                totalAmount: data.calculateTotalAmount(),
             },
         })
     }
@@ -51,33 +53,30 @@ class RentalRepository implements Repository<RentalModel> {
     }
 
     async updateMany(filters: Partial<RentalModel>, data: Partial<RentalModel>): Promise<number> {
-        const rentals = await prisma.rental
-            .updateMany({
-                where: filters,
-                data,
-            })
-            .count()
+        const updatedRentals = await prisma.rental.updateMany({
+            where: filters,
+            data,
+        })
 
-        return rentals
+        return updatedRentals.count
     }
 
-    async delete(id: UUID): Promise<boolean> {
+    async remove(id: UUID): Promise<boolean> {
         await prisma.rental.delete({
             where: {
                 id,
             },
         })
+
         return true
     }
 
-    async deleteMany(filters: Partial<RentalModel>): Promise<number> {
-        const rentals = await prisma.rental
-            .deleteMany({
-                where: filters,
-            })
-            .count()
+    async removeMany(filters: Partial<RentalModel>): Promise<number> {
+        const removedRentals = await prisma.rental.deleteMany({
+            where: filters,
+        })
 
-        return rentals
+        return removedRentals.count
     }
 
     async count(filters: Partial<RentalModel>): Promise<number> {
