@@ -1,9 +1,16 @@
 import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
+import { CustomerModel } from "@/models/customer/customer.ts"
 import { RentalModel } from "@/models/rental/rental.ts"
+import { VehicleModel } from "@/models/vehicle/vehicle.ts"
 import { UUID } from "@/utils/id.ts"
 
-export interface RentalRepositoryInterface<Model extends RentalModel> extends Repository<Model> {}
+export interface RentalRepositoryInterface<Model extends RentalModel> extends Repository<Model> {
+    findVehiclesRentalsById(vehicleId: UUID): Promise<RentalModel[]>
+    findVehiclesRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel[]>
+    findLastVehicleRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel | null>
+}
+
 class RentalRepository implements RentalRepositoryInterface<RentalModel> {
     async create(data: RentalModel): Promise<void> {
         await prisma.rental.create({
@@ -85,6 +92,47 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
         })
 
         return rentals
+    }
+
+    //// ADDITIONAL METHODS ////
+
+    async findVehiclesRentalsById(vehicleId: VehicleModel["id"]): Promise<RentalModel[]> {
+        const vehicleRentals = await prisma.rental.findMany({
+            where: {
+                vehicleId,
+            },
+            orderBy: {
+                endDate: "desc",
+            },
+        })
+
+        if (vehicleRentals) return vehicleRentals as RentalModel[]
+        else return []
+    }
+
+    async findVehiclesRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel[]> {
+        const customerRentals = await prisma.rental.findMany({
+            where: {
+                customerId,
+            },
+        })
+
+        return customerRentals as RentalModel[]
+    }
+
+    async findLastVehicleRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel | null> {
+        const lastCustomerRental = await prisma.rental.findFirst({
+            where: {
+                customerId: customerId,
+            },
+            take: 1,
+            orderBy: {
+                endDate: "desc",
+            },
+        })
+
+        if (lastCustomerRental) return lastCustomerRental as RentalModel
+        else return null
     }
 }
 
