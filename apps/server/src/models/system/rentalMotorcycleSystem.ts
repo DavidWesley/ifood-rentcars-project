@@ -11,14 +11,14 @@ import { VehicleRepositoryInterface } from "@/repositories/vehicleRepository.ts"
 export class RentalMotorcyclesSystem extends System {
     private constructor(
         customerRepo: CustomerRepositoryInterface<CustomerModel>,
-        MotorcycleRepo: VehicleRepositoryInterface<Motorcycle>,
+        motorcycleRepo: VehicleRepositoryInterface<Motorcycle>,
         rentalRepo: RentalRepositoryInterface<RentalModel>,
         invoiceRepo: InvoiceRepositoryInterface<InvoiceModel>
     ) {
-        super(customerRepo, MotorcycleRepo, rentalRepo, invoiceRepo)
+        super(customerRepo, motorcycleRepo, rentalRepo, invoiceRepo)
     }
 
-    addMotorcycle(MotorcycleDetails: BaseMotorcycleProps): void {}
+    addMotorcycle(motorcycleDetails: BaseMotorcycleProps): void {}
 
     rentMotorcycle(customerId: string, vehicleId: string, startDate: Date, endDate: Date): void {}
 
