@@ -3,7 +3,9 @@ import { prisma } from "@/libs/prisma.ts"
 import { VehicleModel } from "@/models/vehicle/vehicle.ts"
 import { UUID } from "@/utils/id.ts"
 
-export interface VehicleRepositoryInterface<Model extends VehicleModel> extends Repository<Model> {}
+export interface VehicleRepositoryInterface<Model extends VehicleModel> extends Repository<Model> {
+    findByPlate(plate: string): Promise<Model | null>
+}
 
 class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
     async create(data: VehicleModel): Promise<void> {
@@ -91,6 +93,10 @@ class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
         })
 
         return counter
+    }
+
+    async findByPlate(plate: string): Promise<VehicleModel | null> {
+        return this.findOne({ plate })
     }
 }
 
