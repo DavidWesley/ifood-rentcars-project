@@ -1,7 +1,9 @@
-import { BaseVehicleProps, VehicleModel, VehicleTypeEnum } from "@/models/vehicle.ts"
+import { BaseVehicleProps, VehicleModel, VehicleTypeEnum } from "@/models/vehicle/vehicle.ts"
 
-export class MotorCycle extends VehicleModel {
-    constructor(props: Omit<BaseVehicleProps, "vehicleType">) {
+export interface BaseMotorcycleProps extends Omit<BaseVehicleProps, "vehicleType"> {}
+
+export class Motorcycle extends VehicleModel {
+    constructor(props: BaseMotorcycleProps) {
         super({
             available: true,
             vehicleType: VehicleTypeEnum.MOTORCYCLE,

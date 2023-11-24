@@ -1,6 +1,6 @@
 import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { VehicleModel } from "@/models/vehicle.ts"
+import { VehicleModel } from "@/models/vehicle/vehicle.ts"
 import { UUID } from "@/utils/id.ts"
 
 export interface VehicleRepositoryInterface<Model extends VehicleModel> extends Repository<Model> {}

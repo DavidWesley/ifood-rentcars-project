@@ -1,6 +1,6 @@
 import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { InvoiceModel } from "@/models/invoice.ts"
+import { InvoiceModel } from "@/models/invoice/invoice.ts"
 import { UUID } from "@/utils/id.ts"
 
 export interface InvoiceRepositoryInterface<Model extends InvoiceModel> extends Repository<Model> {}

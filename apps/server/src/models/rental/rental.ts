@@ -1,8 +1,8 @@
 import { ModelProps } from "@/interfaces/model.ts"
 import { UUID, createUUID } from "@/utils/id.ts"
 
-import { CustomerModel } from "@/models/customer.ts"
-import { VehicleModel } from "@/models/vehicle.ts"
+import { CustomerModel } from "@/models/customer/customer.ts"
+import { VehicleModel } from "@/models/vehicle/vehicle.ts"
 
 export interface BaseRentalProps {
     customer: CustomerModel

@@ -1,6 +1,6 @@
 import { ModelProps } from "@/interfaces/model.ts"
-import { CustomerModel } from "@/models/customer.ts"
-import { RentalModel } from "@/models/rental.ts"
+import { CustomerModel } from "@/models/customer/customer.ts"
+import { RentalModel } from "@/models/rental/rental.ts"
 import { UUID, createUUID } from "@/utils/id.ts"
 
 export interface BaseInvoiceProps {

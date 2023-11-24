@@ -1,6 +1,6 @@
 import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { CustomerModel } from "@/models/customer.ts"
+import { CustomerModel } from "@/models/customer/customer.ts"
 import { UUID } from "@/utils/id.ts"
 
 export interface CustomerRepositoryInterface<Model extends CustomerModel> extends Repository<Model> {}
