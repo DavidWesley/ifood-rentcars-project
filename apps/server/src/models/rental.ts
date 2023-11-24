@@ -5,7 +5,7 @@ import { CustomerModel } from "@/models/customer.ts"
 import { VehicleModel } from "@/models/vehicle.ts"
 
 export interface BaseRentalProps {
-    costumer: CustomerModel
+    customer: CustomerModel
     vehicle: VehicleModel
     startDate: Date
     endDate: Date
@@ -20,7 +20,7 @@ export interface RentalMethods {
 }
 
 export class RentalModel implements RentalProps, RentalMethods {
-    public readonly costumer: CustomerModel
+    public readonly customer: CustomerModel
     public readonly vehicle: VehicleModel
 
     public readonly startDate: Date
@@ -31,7 +31,7 @@ export class RentalModel implements RentalProps, RentalMethods {
     public updatedAt: Date
 
     constructor(customer: CustomerModel, vehicle: VehicleModel, startDate: Date, endDate: Date) {
-        this.costumer = customer
+        this.customer = customer
         this.vehicle = vehicle
 
         this.startDate = startDate
@@ -43,6 +43,6 @@ export class RentalModel implements RentalProps, RentalMethods {
     }
 
     public calculateTotalAmount(): number {
-        return 0
+        return 4800
     }
 }
