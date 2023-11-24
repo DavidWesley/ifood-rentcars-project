@@ -89,6 +89,9 @@ model Invoice {
   rentals       Rental[]
   extraServices ExtraService[]
 
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updateAt  DateTime @updatedAt
+
   @@map(name: "invoices")
 }
 
