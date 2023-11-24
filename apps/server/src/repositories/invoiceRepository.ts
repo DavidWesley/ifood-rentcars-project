@@ -3,9 +3,11 @@ import { prisma } from "@/libs/prisma.ts"
 import { InvoiceModel } from "@/models/invoice.ts"
 import { UUID } from "@/utils/id.ts"
 
-class InvoiceRepository implements Repository<InvoiceModel> {
+export interface InvoiceRepositoryInterface<Model extends InvoiceModel> extends Repository<Model> {}
+
+class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
     async create(data: InvoiceModel): Promise<void> {
-        return await prisma.invoice.create({
+        await prisma.invoice.create({
             data: {
                 id: data.id,
                 customer: data.customer,
@@ -15,6 +17,7 @@ class InvoiceRepository implements Repository<InvoiceModel> {
             },
         })
     }
+
     async findAll(): Promise<InvoiceModel[]> {
         const invoices = await prisma.invoice.findMany()
 
@@ -28,7 +31,7 @@ class InvoiceRepository implements Repository<InvoiceModel> {
             },
         })
 
-        if (invoice != null) return invoice as InvoiceModel
+        if (invoice !== null) return invoice as InvoiceModel
         else return null
     }
 
@@ -51,17 +54,15 @@ class InvoiceRepository implements Repository<InvoiceModel> {
     }
 
     async updateMany(filters: Partial<InvoiceModel>, data: Partial<InvoiceModel>): Promise<number> {
-        const invoices = await prisma.invoice
-            .updateMany({
-                where: filters,
-                data,
-            })
-            .count()
+        const invoices = await prisma.invoice.updateMany({
+            where: filters,
+            data,
+        })
 
-        return invoices
+        return invoices.count
     }
 
-    async delete(id: UUID): Promise<boolean> {
+    async remove(id: UUID): Promise<boolean> {
         await prisma.invoice.delete({
             where: {
                 id,
@@ -70,22 +71,20 @@ class InvoiceRepository implements Repository<InvoiceModel> {
         return true
     }
 
-    async deleteMany(filters: Partial<InvoiceModel>): Promise<number> {
-        const invoices = await prisma.invoice
-            .deleteMany({
-                where: filters,
-            })
-            .count()
-
-        return invoices
-    }
-
-    async count(filters: Partial<InvoiceModel>): Promise<number> {
-        const invoices = await prisma.invoice.count({
+    async removeMany(filters: Partial<InvoiceModel>): Promise<number> {
+        const invoices = await prisma.invoice.deleteMany({
             where: filters,
         })
 
-        return invoices
+        return invoices.count
+    }
+
+    async count(filters: Partial<InvoiceModel>): Promise<number> {
+        const counter = await prisma.invoice.count({
+            where: filters,
+        })
+
+        return counter
     }
 }
 
