@@ -67,7 +67,7 @@ Table invoices {
   updateAt DateTime [not null]
   expiresAt DateTime [not null]
   customerId String [unique, not null]
-  state String [not null, default: 'open']
+  state String [not null, default: 'opened']
   rentals rentals [not null]
   services services [not null]
 }

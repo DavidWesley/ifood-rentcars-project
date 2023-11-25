@@ -90,7 +90,7 @@ model Invoice {
   updateAt   DateTime  @updatedAt @map("updated_at")
   expiresAt  DateTime  @map("expires_at")
   customerId String    @unique
-  state      String    @default("open")
+  state      String    @default("opened")
   rentals    Rental[]
   services   Service[]
 
