@@ -26,6 +26,7 @@ Table vehicles {
   hourlyRentalRate Float [not null]
   available Boolean [not null, default: true]
   popularity Int [not null]
+  mass Float [not null]
   Rental rentals [not null]
   VehicleType vehicle_types [not null]
 }

@@ -41,6 +41,7 @@ model Vehicle {
   hourlyRentalRate  Float   @map("hourly_rental_rete")
   available         Boolean @default(true)
   popularity        Int
+  mass              Float
 
   Rental Rental[]
 
