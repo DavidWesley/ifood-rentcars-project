@@ -13,13 +13,14 @@ export interface BaseVehicleProps {
     model: string
     manufacturingYear: number
     color: string
-    available: boolean
+
     hourlyRentalRate: number
+    available?: boolean
+    popularity?: number
 }
 
 export interface VehicleModelProps extends BaseVehicleProps, ModelProps {
     id: UUID
-    popularity: number
 }
 
 export interface VehicleModelMethods {
@@ -52,8 +53,8 @@ export class VehicleModel implements VehicleModelProps, VehicleModelMethods {
         this.manufacturingYear = props.manufacturingYear
         this.color = props.color
 
-        this.available = true
-        this.popularity = 0
+        this.available = props.available ?? false
+        this.popularity = props.popularity ?? 0
         this.hourlyRentalRate = props.hourlyRentalRate
 
         this.id = createUUID()
