@@ -10,20 +10,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator dbml {
+  provider   = "prisma-dbml-generator"
+  output     = "./dbml"
+  outputName = "schema.dbml"
+}
+
 model VehicleType {
-  id           Int     @id @default(autoincrement())
-  vehicle_type String  @unique
-  description  String
-  tax          Decimal
+  type        String    @id @unique
+  description String?
+  tax         Float     @default(1.0)
+  Vehicle     Vehicle[]
+
+  @@map("vehicle_types")
 }
 
 model LicenseType {
-  id          Int    @id @default(autoincrement())
-  type        String @unique
-  description String
-
-  Customer   Customer? @relation(fields: [customerId], references: [id])
-  customerId String?
+  type        String     @id @unique
+  description String?
+  Customer    Customer[]
 
   @@map("license_types")
 }
@@ -33,70 +38,80 @@ model Vehicle {
   plate             String @unique
   model             String
   brand             String
-  manufacturingYear Int
+  manufacturingYear Int    @map(name: "manufacturing_year")
   color             String
+  type              String
 
-  hourlyRentalRate Decimal
-  available        Boolean @default(true)
+  hourlyRentalRate Float    @map(name: "hourly_rental_rete")
+  available        Boolean  @default(true)
+  Rental           Rental[]
   popularity       Int
 
-  vehicleType String
+  VehicleType VehicleType @relation(fields: [type], references: [type])
 
-  @@map(name: "vehicles")
+  @@map("vehicles")
 }
 
 model Customer {
   id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updateAt  DateTime @updatedAt @map(name: "updated_at")
+
   name      String
   email     String   @unique
   cpf       String   @unique
   birthDate DateTime
   gender    String
+  license   String
+  points    Int
+  Rental    Rental[]
 
-  licenseType LicenseType[]
-  points      Int
+  licenseType LicenseType @relation(fields: [license], references: [type])
 
-  createdAt DateTime @default(now()) @map(name: "created_at")
-  updateAt  DateTime @updatedAt
-
-  @@map(name: "customers")
+  @@map("customers")
 }
 
 model Rental {
-  id         String   @id @default(uuid())
-  customerId String   @unique
-  vehicleId  String   @unique
-  startDate  DateTime
-  endDate    DateTime
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updateAt  DateTime @updatedAt @map(name: "updated_at")
 
-  ammount Decimal
-  state   String  @default("active")
+  startDate DateTime
+  endDate   DateTime
+  amount    Float
+  state     String   @default("active")
 
-  Invoice   Invoice? @relation(fields: [invoiceId], references: [id])
-  invoiceId String?
+  customerId String
+  vehicleId  String
+  invoiceId  String?
 
-  @@map(name: "rentals")
+  Customer Customer @relation(fields: [customerId], references: [id])
+  Vehicle  Vehicle  @relation(fields: [vehicleId], references: [id])
+  Invoice  Invoice? @relation(fields: [invoiceId], references: [id])
+
+  @@map("rentals")
 }
 
 model Invoice {
-  id         String @id @default(uuid())
-  customerId String @unique
-  state      String @default("open")
-
-  rentals       Rental[]
-  extraServices ExtraService[]
-
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now()) @map(name: "created_at")
-  updateAt  DateTime @updatedAt
+  updateAt  DateTime @updatedAt @map(name: "updated_at")
 
-  @@map(name: "invoices")
+  customerId String    @unique
+  state      String    @default("open")
+  rentals    Rental[]
+  services   Service[]
+
+  @@map("invoices")
 }
 
-model ExtraService {
-  id          String  @id @default(uuid())
+model Service {
+  id          String @id @default(uuid())
   description String
-  amount      Decimal
+  cost        Float
 
-  Invoice   Invoice? @relation(fields: [invoiceId], references: [id])
   invoiceId String?
+  Invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  @@map("services")
 }

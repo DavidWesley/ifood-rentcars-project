@@ -1,0 +1,92 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table vehicle_types {
+  type String [pk]
+  description String
+  tax Float [not null, default: 1]
+  Vehicle vehicles [not null]
+}
+
+Table license_types {
+  type String [pk]
+  description String
+  Customer customers [not null]
+}
+
+Table vehicles {
+  id String [pk]
+  plate String [unique, not null]
+  model String [not null]
+  brand String [not null]
+  manufacturingYear Int [not null]
+  color String [not null]
+  type String [not null]
+  hourlyRentalRate Float [not null]
+  available Boolean [not null, default: true]
+  Rental rentals [not null]
+  popularity Int [not null]
+  VehicleType vehicle_types [not null]
+}
+
+Table customers {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updateAt DateTime [not null]
+  name String [not null]
+  email String [unique, not null]
+  cpf String [unique, not null]
+  birthDate DateTime [not null]
+  gender String [not null]
+  license String [not null]
+  points Int [not null]
+  Rental rentals [not null]
+  licenseType license_types [not null]
+}
+
+Table rentals {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updateAt DateTime [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  amount Float [not null]
+  state String [not null, default: 'active']
+  customerId String [not null]
+  vehicleId String [not null]
+  invoiceId String
+  Customer customers [not null]
+  Vehicle vehicles [not null]
+  Invoice invoices
+}
+
+Table invoices {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updateAt DateTime [not null]
+  customerId String [unique, not null]
+  state String [not null, default: 'open']
+  rentals rentals [not null]
+  services services [not null]
+}
+
+Table services {
+  id String [pk]
+  description String [not null]
+  cost Float [not null]
+  invoiceId String
+  Invoice invoices
+}
+
+Ref: vehicles.type > vehicle_types.type
+
+Ref: customers.license > license_types.type
+
+Ref: rentals.customerId > customers.id
+
+Ref: rentals.vehicleId > vehicles.id
+
+Ref: rentals.invoiceId > invoices.id
+
+Ref: services.invoiceId > invoices.id
