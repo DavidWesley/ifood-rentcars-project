@@ -41,8 +41,8 @@ Table customers {
   gender String [not null]
   license String [not null]
   points Int [not null]
-  licenseType license_types [not null]
   Rental rentals [not null]
+  licenseType license_types [not null]
 }
 
 Table rentals {
@@ -65,6 +65,7 @@ Table invoices {
   id String [pk]
   createdAt DateTime [default: `now()`, not null]
   updateAt DateTime [not null]
+  expiresAt DateTime [not null]
   customerId String [unique, not null]
   state String [not null, default: 'open']
   rentals rentals [not null]
