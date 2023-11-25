@@ -62,6 +62,10 @@ export class VehicleModel implements VehicleModelProps, VehicleModelMethods {
         this.updatedAt = this.createdAt
     }
 
+    isAvailable(): boolean {
+        return this.available === true
+    }
+
     static validateVehicleId(id: string): id is VehicleModel["id"] {
         return validateUUID(id)
     }
