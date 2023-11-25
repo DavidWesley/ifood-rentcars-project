@@ -1,36 +1,30 @@
 import { ModelProps } from "@/interfaces/model.ts"
 import { UUID, createUUID, validateUUID } from "@/utils/id.ts"
 
-export enum LicenseTypeEnum {
-    A = "A",
-    B = "B",
-    AB = "AB",
-    C = "C",
-}
-
 export type BaseCustomerGenderType = "male" | "female" | "other"
+export type LicenseType = "A" | "B" | "AB" | "C" | "D" | "E"
 
-export interface BaseCustomerProps {
+export interface BaseCustomerProps extends Partial<ModelProps> {
     name: string
     email: string
     cpf: string
-    licenseType: LicenseTypeEnum
+    license: LicenseType
     birthDate: Date
     gender: BaseCustomerGenderType
-}
-
-export interface CustomerProps extends ModelProps, BaseCustomerProps {
-    id: UUID
     points: number
 }
 
-interface CustomerMethods {}
+export interface CustomerProps extends BaseCustomerProps {
+    id: UUID
+}
+
+export interface CustomerMethods {}
 
 export class CustomerModel implements CustomerProps, CustomerMethods {
     public readonly name: string
     public readonly email: string
     public readonly cpf: string
-    public readonly licenseType: LicenseTypeEnum
+    public readonly license: LicenseType
     public readonly birthDate: Date
     public readonly gender: BaseCustomerGenderType
 
@@ -41,20 +35,23 @@ export class CustomerModel implements CustomerProps, CustomerMethods {
     public updatedAt: Date
 
     constructor(data: BaseCustomerProps) {
-        this.id = createUUID()
+        if (typeof data.id !== "string") this.id = createUUID()
+        else if (CustomerModel.validateCustomerId(data.id)) this.id = data.id
+        else throw new Error("Invalid Customer Id")
+
         this.name = data.name
         this.email = data.email
         this.cpf = data.cpf
-        this.licenseType = data.licenseType
+        this.license = data.license
         this.birthDate = data.birthDate
         this.gender = data.gender
+        this.points = data.points ?? 0
 
-        this.points = 0
-        this.createdAt = new Date()
-        this.updatedAt = this.createdAt
+        this.createdAt = data.createdAt ?? new Date()
+        this.updatedAt = data.updatedAt ?? this.createdAt
     }
 
-    static validaCustomerId(id: string): id is CustomerModel["id"] {
+    public static validateCustomerId(id: string): id is CustomerModel["id"] {
         return validateUUID(id)
     }
 }
