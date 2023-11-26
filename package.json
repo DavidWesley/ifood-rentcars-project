@@ -12,7 +12,6 @@
     "url": "https://github.com/DavidWesley/ifood-rentcars-project.git"
   },
   "scripts": {
-    "build": "",
     "lint": "eslint",
     "lint:fix": "eslint . --ext .js,.ts --fix",
     "lint:all": "eslint src --ext .js,.ts --max-warnings=0 --fix",

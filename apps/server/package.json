@@ -23,7 +23,7 @@
     "test:coverage": "vitest run --coverage",
     "start": "tsx --env-file=.env src/main.ts",
     "dev": "cross-env PORT=3333 tsx watch --env-file=.env src/main.ts ",
-    "build": "tsup src"
+    "build": "tsup --config tsup.config.ts src"
   },
   "license": "LGPL-3.0-only",
   "homepage": "https://github.com/DavidWesley/ifood-rentcars-project",

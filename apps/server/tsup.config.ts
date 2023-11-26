@@ -10,4 +10,5 @@ export default defineConfig({
   dts: false,
   platform: "node",
   keepNames: true,
+  tsconfig: "./tsconfig.build.json",
 })
