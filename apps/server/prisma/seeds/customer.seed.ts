@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker/locale/pt_BR"
 import { Customer, PrismaClient } from "@prisma/client"
 
 import { LICENSES_TYPES_DATA } from "./licenseTypes.seed"
+import { generateCPF } from "./utils/cpf"
 
 const randomCustomerLicenseType = () => {
     return faker.helpers.arrayElement(LICENSES_TYPES_DATA)
@@ -26,7 +27,7 @@ export const randomCustomerData = (): Customer => {
         name: faker.person.fullName({ firstName, lastName }),
         email: faker.internet.email({ firstName, lastName }).toLowerCase(),
         license: randomCustomerLicenseType().type,
-        cpf: faker.string.numeric(11).toString().padStart(11, "0"),
+        cpf: generateCPF().padStart(11, "0"),
         gender: faker.helpers.arrayElement(["male", "female", "other"]),
         points: faker.number.int({ min: 10, max: 50 }),
         createdAt: new Date(),
