@@ -23,4 +23,10 @@ export class VehicleController {
         await System.getInstance().addVehicle(request.body)
         return response.status(StatusCodes.CREATED)
     }
+
+    public static async excludeVehicle(request: FastifyRequest, response: FastifyReply) {
+        const { plate } = request.params
+        await System.getInstance().removeVehicle(plate)
+        return response.status(StatusCodes.OK)
+    }
 }

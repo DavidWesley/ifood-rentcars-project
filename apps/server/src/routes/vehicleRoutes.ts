@@ -7,4 +7,5 @@ export const vehicleRoutes = async (app: FastifyInstance) => {
     app.post("/", VehicleController.createVehicle)
     app.get("/available", VehicleController.getAvailableVehicles)
     app.get("/rented", VehicleController.getRentedVehicles)
+    app.delete("/:plate", VehicleController.deleteVehicle)
 }
