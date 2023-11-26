@@ -31,21 +31,19 @@ model LicenseType {
 }
 
 model Vehicle {
-  id                String  @id @default(uuid())
-  plate             String  @unique
+  id                String      @id @default(uuid())
+  plate             String      @unique
   model             String
   brand             String
-  manufacturingYear Int     @map("manufacturing_year")
+  manufacturingYear Int         @map("manufacturing_year")
   color             String
   type              String
-  hourlyRentalRate  Float   @map("hourly_rental_rete")
-  available         Boolean @default(true)
+  hourlyRentalRate  Float       @map("hourly_rental_rete")
+  available         Boolean     @default(true)
   popularity        Int
   mass              Float
-
-  Rental Rental[]
-
-  VehicleType VehicleType @relation(fields: [type], references: [type])
+  Rental            Rental[]
+  VehicleType       VehicleType @relation(fields: [type], references: [type])
 
   @@map("vehicles")
 }
@@ -61,8 +59,8 @@ model Customer {
   gender      String
   license     String
   points      Int
-  Rental      Rental[]
   licenseType LicenseType @relation(fields: [license], references: [type])
+  Rental      Rental[]
 
   @@map("customers")
 }
@@ -78,9 +76,9 @@ model Rental {
   customerId String
   vehicleId  String
   invoiceId  String?
+  Customer   Customer @relation(fields: [customerId], references: [id])
   Invoice    Invoice? @relation(fields: [invoiceId], references: [id])
   Vehicle    Vehicle  @relation(fields: [vehicleId], references: [id])
-  Customer   Customer @relation(fields: [customerId], references: [id])
 
   @@map("rentals")
 }

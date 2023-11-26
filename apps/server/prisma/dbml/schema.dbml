@@ -42,8 +42,8 @@ Table customers {
   gender String [not null]
   license String [not null]
   points Int [not null]
-  Rental rentals [not null]
   licenseType license_types [not null]
+  Rental rentals [not null]
 }
 
 Table rentals {
@@ -57,9 +57,9 @@ Table rentals {
   customerId String [not null]
   vehicleId String [not null]
   invoiceId String
+  Customer customers [not null]
   Invoice invoices
   Vehicle vehicles [not null]
-  Customer customers [not null]
 }
 
 Table invoices {
@@ -85,10 +85,10 @@ Ref: vehicles.type > vehicle_types.type
 
 Ref: customers.license > license_types.type
 
+Ref: rentals.customerId > customers.id
+
 Ref: rentals.invoiceId > invoices.id
 
 Ref: rentals.vehicleId > vehicles.id
-
-Ref: rentals.customerId > customers.id
 
 Ref: services.invoiceId > invoices.id
