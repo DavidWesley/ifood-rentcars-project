@@ -52,6 +52,7 @@ export class CustomerModel implements CustomerProps, CustomerMethods {
 
         this.name = data.name
         this.email = data.email
+        // TODO: Checar CPF no futuro
         this.cpf = data.cpf
         this.license = data.license
         this.birthDate = data.birthDate
