@@ -8,9 +8,9 @@ export class RentalController {
     }
 
     public static async create(request: FastifyRequest, response: FastifyReply) {
-        const { customerId, vehicleId, startDate, endDate } = request.body
+        const { cpf, plate, startDate, endDate } = request.body
         try {
-            await System.getInstance().rentalVehicle(vehicleId, customerId, startDate, endDate)
+            await System.getInstance().rentalVehicle(plate, cpf, new Date(startDate), new Date(endDate))
         } catch (e) {
             if (e instanceof Error) return response.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: e.message })
         }
