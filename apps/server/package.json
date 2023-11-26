@@ -24,7 +24,7 @@
     "start": "NODE_ENV=production node --env-file=.env dist/main.js",
     "dev": "cross-env PORT=3333 tsx watch --env-file=.env src/main.ts ",
     "build": "tsup --config tsup.config.ts src",
-    "prisma:deploy": "npx prisma generate --schema=./prisma/schema.prisma && npx prisma migrate deploy --schema=./prisma/schema.deploy.prisma"
+    "prisma:deploy": "npx prisma generate --schema=./prisma/schema.deploy.prisma && npx prisma migrate deploy --schema=./prisma/schema.deploy.prisma"
   },
   "license": "LGPL-3.0-only",
   "homepage": "https://github.com/DavidWesley/ifood-rentcars-project",
