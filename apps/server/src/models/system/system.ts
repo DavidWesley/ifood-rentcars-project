@@ -19,6 +19,7 @@ export interface SystemModelMethods {
     removeCustomer(cpf: CustomerModel["cpf"]): Promise<void>
     rentalVehicle(plate: VehicleProps["plate"], cpf: CustomerModel["cpf"], startDate: Date, endDate: Date): Promise<boolean>
     returnVehicle(cpf: CustomerModel["cpf"], plate: VehicleModel["plate"], returnDate?: Date): Promise<void>
+    listAllVehicles(): Promise<VehicleModel[]>
     listAvailableVehicles(): Promise<VehicleModel[]>
     listRentedVehicles(): Promise<VehicleModel[]>
     showCustomerInvoices(customerId: CustomerModel["id"]): Promise<InvoiceModel[]>
@@ -168,6 +169,11 @@ export class System implements SystemModelProps, SystemModelMethods {
 
         // Lógica de devolução de veículos
         await this.vehicleRepo.update(rental.vehicle.id, { available: true })
+    }
+
+    public async listAllVehicles(): Promise<VehicleModel[]> {
+        const vehicles = await this.vehicleRepo.findAll()
+        return vehicles
     }
 
     public async listAvailableVehicles(): Promise<VehicleModel[]> {
