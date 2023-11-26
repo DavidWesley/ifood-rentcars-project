@@ -6,6 +6,8 @@ import { StatusCodes } from "http-status-codes"
 import { ENV } from "@/libs/env.ts"
 import { logger } from "@/libs/logger.ts"
 
+import { customerRoutes } from "@/routes/customerRoutes.ts"
+import { invoiceRoutes } from "@/routes/invoiceRoutes.ts"
 import { rentalRoutes } from "@/routes/rentalRoutes.ts"
 import { vehicleRoutes } from "@/routes/vehicleRoutes.ts"
 
@@ -35,5 +37,8 @@ server.get("/check", async (_, res) => {
 })
 
 //// ROUTES ////
-server.register(rentalRoutes, { prefix: "/rentals" })
+
+server.register(customerRoutes, { prefix: "/customer" })
 server.register(vehicleRoutes, { prefix: "/vehicle" })
+server.register(rentalRoutes, { prefix: "/rental" })
+server.register(invoiceRoutes, { prefix: "/invoice" })
