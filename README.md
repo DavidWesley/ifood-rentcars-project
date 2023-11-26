@@ -8,17 +8,27 @@ Desenvolvido com paixão e aprendizado ao longo do bootcamp, o Rentcars Project.
 
 ## Recursos Destacados:
 
-1. Cadastrar veículo
-2. Alugar veículo
-3. Devolver veículo
-4. Listar veículos disponíveis
-5. Listar veículos alugados
-6. Mostrar fatura do cliente
-7. Sair do sistema
+- [x] Cadastrar veículo
+- [x] Alugar veículo
+- [x] Devolver veículo
+- [x] Listar veículos disponíveis
+- [x] Listar veículos alugados
+- [x] Mostrar fatura do cliente
+- [ ] ~~Sair do sistema~~
 
 ## Tecnologias Utilizadas:
 
-- **Em breve...**
+- Node
+- Typescript
+- Vitest
+- Tsup
+- Eslint
+- Prisma
+- PostgreSQL
+
+## Relacionamento das Entidades
+![image](assets/rentcars-diagram.png)
+
 
 ## Equipe
 
