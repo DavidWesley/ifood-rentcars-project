@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify"
 
 import { CustomerController } from "@/controllers/customerController.ts"
+import { InvoiceController } from "@/controllers/invoiceController.ts"
 import { RentalController } from "@/controllers/rentalController.ts"
 
 export const customerRoutes = async (app: FastifyInstance) => {
@@ -41,5 +42,13 @@ export const customerRoutes = async (app: FastifyInstance) => {
             preHandler: [CustomerController.checkCpfExists],
         },
         RentalController.getByCustomer
+    )
+
+    app.get(
+        "/:cpf/invoices",
+        {
+            preHandler: [CustomerController.checkCpfExists],
+        },
+        InvoiceController.showCustomerInvoices
     )
 }
