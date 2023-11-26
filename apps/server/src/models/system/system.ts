@@ -180,10 +180,11 @@ export class System implements SystemModelProps, SystemModelMethods {
         return rentedVehicles
     }
 
-    public async showCustomerInvoices(customerId: CustomerModel["id"]): Promise<InvoiceModel[]> {
-        if (CustomerModel.validateCustomerId(customerId) === false) throw new Error("Invalid Customer")
+    public async showCustomerInvoices(cpf: CustomerModel["cpf"]): Promise<InvoiceModel[]> {
+        const customer = await this.customerRepo.findByCPF(cpf)
+        if (customer === null) throw new Error("Customer not found")
 
-        const invoices = await this.invoiceRepo.findInvoicesByCustomerId(customerId)
+        const invoices = await this.invoiceRepo.findInvoicesByCustomerId(customer.id)
         return invoices
     }
 
