@@ -17,6 +17,7 @@ export interface BaseVehicleProps extends Partial<ModelProps> {
     model: string
     manufacturingYear: number
     color: string
+    mass: number
 
     hourlyRentalRate: number
     available?: boolean
@@ -44,6 +45,7 @@ export class VehicleModel implements VehicleProps, VehicleModelMethods {
     public readonly model: string
     public readonly manufacturingYear: number
     public readonly color: string
+    public readonly mass: number
 
     public readonly available: boolean
     public readonly popularity: number
@@ -60,6 +62,7 @@ export class VehicleModel implements VehicleProps, VehicleModelMethods {
         this.model = props.model
         this.manufacturingYear = props.manufacturingYear
         this.color = props.color
+        this.mass = props.mass
 
         this.available = props.available ?? true
         this.popularity = props.popularity ?? 0

@@ -15,6 +15,7 @@ export interface VehicleRepositoryInterface<Output extends VehicleRepositoryOutp
     findAvailableVehiclesByBrand(brand: Input["brand"]): Promise<Output[]>
     findAvailableVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]>
     findRentedVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]>
+    calculateTax(vehicleType: Input["type"]): Promise<number>
 }
 
 class VehicleRepository<
@@ -35,6 +36,7 @@ class VehicleRepository<
                 available: data.available === true,
                 hourlyRentalRate: data.hourlyRentalRate,
                 popularity: data.popularity || 0,
+                mass: data.mass ?? 1000,
             },
         })
     }
@@ -195,6 +197,17 @@ class VehicleRepository<
         })
 
         return rentedVehiclesByFilters as Output[]
+    }
+
+    async calculateTax(vehicleType: Input["type"]): Promise<number> {
+        const vehicleTypeData = await prisma.vehicleType.findUnique({
+            where: {
+                type: vehicleType,
+            },
+        })
+
+        if (vehicleTypeData === null) throw new Error("Vehicle type not found")
+        return vehicleTypeData.tax
     }
 }
 
