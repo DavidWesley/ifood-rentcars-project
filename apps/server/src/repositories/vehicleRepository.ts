@@ -1,56 +1,74 @@
-import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { VehicleModel } from "@/models/vehicle/vehicle.ts"
-import { UUID } from "@/utils/id.ts"
 
-export interface VehicleRepositoryInterface<Model extends VehicleModel> extends Repository<Model> {
-    findByPlate(plate: string): Promise<Model | null>
+import { ModelProps } from "@/interfaces/model.ts"
+import { Repository, RepositoryQuery } from "@/interfaces/repository.ts"
+import { VehicleModel, VehicleProps } from "@/models/vehicle/vehicle.ts"
+
+export interface VehicleRepositoryInput extends Omit<VehicleProps, keyof ModelProps> {}
+export interface VehicleRepositoryOutput extends VehicleModel {}
+
+export interface VehicleRepositoryInterface<Output extends VehicleRepositoryOutput, Input extends VehicleRepositoryInput = Output>
+    extends Repository<Output> {
+    findByPlate(plate: Input["plate"]): Promise<Output | null>
+    findVehiclesByType(type: Input["type"]): Promise<Output[]>
+    findAvailableVehiclesByType(type: Input["type"]): Promise<Output[]>
+    findAvailableVehiclesByBrand(brand: Input["brand"]): Promise<Output[]>
+    findAvailableVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]>
+    findRentedVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]>
 }
 
-class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
-    async create(data: VehicleModel): Promise<void> {
+class VehicleRepository<
+    Output extends VehicleRepositoryOutput = VehicleRepositoryOutput,
+    Input extends VehicleRepositoryInput = VehicleRepositoryInput,
+> implements VehicleRepositoryInterface<Output, Input>
+{
+    public async create(data: Required<Output>): Promise<void> {
         await prisma.vehicle.create({
             data: {
                 id: data.id,
                 plate: data.plate,
-                vehicleType: data.vehicleType,
+                type: data.type,
                 brand: data.brand,
                 model: data.model,
                 manufacturingYear: data.manufacturingYear,
                 color: data.color,
-                available: data.available,
+                available: data.available === true,
                 hourlyRentalRate: data.hourlyRentalRate,
-                popularity: data.popularity,
+                popularity: data.popularity || 0,
             },
         })
     }
-    async findAll(): Promise<VehicleModel[]> {
+
+    public async findAll(): Promise<Output[]> {
         const vehicles = await prisma.vehicle.findMany()
 
-        return vehicles as VehicleModel[]
+        // TODO:
+        // change lines like below to use a private method
+        // that converts database return format data to `Output` format explicitly
+        return vehicles as Output[]
     }
 
-    async findById(id: UUID): Promise<VehicleModel | null> {
+    public async findById(id: Output["id"]): Promise<Output | null> {
         const vehicle = await prisma.vehicle.findUnique({
             where: {
                 id: id.toString(),
             },
         })
 
-        if (vehicle != null) return vehicle as VehicleModel
+        if (vehicle != null) return vehicle as Output
         else return null
     }
 
-    async findOne(filters: Partial<VehicleModel>): Promise<VehicleModel | null> {
+    public async findOne(filters: Partial<Output>): Promise<Output | null> {
         const vehicle = await prisma.vehicle.findFirst({
             where: filters,
         })
 
-        if (vehicle) return vehicle as VehicleModel
+        if (vehicle) return vehicle as Output
         else return null
     }
 
-    async update(id: UUID, data: Partial<VehicleModel>): Promise<void> {
+    public async update(id: Output["id"], data: Partial<Output>): Promise<void> {
         await prisma.vehicle.update({
             where: {
                 id: id.toString(),
@@ -59,7 +77,7 @@ class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
         })
     }
 
-    async updateMany(filters: Partial<VehicleModel>, data: Partial<VehicleModel>): Promise<number> {
+    public async updateMany(filters: RepositoryQuery<Output>["filters"], data: Partial<Output>): Promise<number> {
         const updatedVehiclesInfo = await prisma.vehicle.updateMany({
             where: filters,
             data,
@@ -68,7 +86,7 @@ class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
         return updatedVehiclesInfo.count
     }
 
-    async remove(id: UUID): Promise<boolean> {
+    public async remove(id: Output["id"]): Promise<boolean> {
         const removedVehicle = await prisma.vehicle.delete({
             where: {
                 id,
@@ -79,7 +97,7 @@ class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
         else return false
     }
 
-    async removeMany(filters: Partial<VehicleModel>): Promise<number> {
+    public async removeMany(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const removedVehiclesInfo = await prisma.vehicle.deleteMany({
             where: filters,
         })
@@ -87,7 +105,7 @@ class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
         return removedVehiclesInfo.count
     }
 
-    async count(filters: Partial<VehicleModel>): Promise<number> {
+    public async count(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const counter = await prisma.vehicle.count({
             where: filters,
         })
@@ -95,8 +113,88 @@ class VehicleRepository implements VehicleRepositoryInterface<VehicleModel> {
         return counter
     }
 
-    async findByPlate(plate: string): Promise<VehicleModel | null> {
-        return this.findOne({ plate })
+    public async findByPlate(plate: string): Promise<Output | null> {
+        const vehicle = await prisma.vehicle.findUnique({
+            where: {
+                plate,
+            },
+        })
+
+        if (vehicle) return vehicle as unknown as Output
+        else return null
+    }
+
+    public async findVehiclesByType(type: Input["type"]): Promise<Output[]> {
+        const availableVehiclesByType = await prisma.vehicle.findMany({
+            where: {
+                type: type,
+                available: true,
+            },
+            orderBy: {
+                popularity: "desc",
+            },
+        })
+
+        return availableVehiclesByType as Output[]
+    }
+
+    async findAvailableVehiclesByType(type: Output["type"]): Promise<Output[]> {
+        const availableVehiclesByType = await prisma.vehicle.findMany({
+            where: {
+                type: type,
+                available: true,
+            },
+            orderBy: {
+                popularity: "desc",
+            },
+        })
+
+        return availableVehiclesByType as Output[]
+    }
+    public async findAvailableVehiclesByBrand(brand: Output["brand"]): Promise<Output[]> {
+        const availableVehiclesByBrand = await prisma.vehicle.findMany({
+            where: {
+                brand,
+                available: true,
+            },
+            orderBy: {
+                popularity: "desc",
+            },
+        })
+
+        return availableVehiclesByBrand as Output[]
+    }
+
+    public async findAvailableVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]> {
+        const filterOptions = {
+            ...filters,
+            available: true,
+        }
+
+        const availableVehiclesByFilters = await prisma.vehicle.findMany({
+            where: filterOptions,
+            orderBy: {
+                popularity: "desc",
+            },
+        })
+
+        return availableVehiclesByFilters as Output[]
+    }
+
+    public async findRentedVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]> {
+        const filterOptions = {
+            ...filters,
+            available: false,
+        }
+
+        const rentedVehiclesByFilters = await prisma.vehicle.findMany({
+            where: filterOptions,
+            orderBy: {
+                popularity: "desc",
+            },
+        })
+
+        return rentedVehiclesByFilters as Output[]
     }
 }
 

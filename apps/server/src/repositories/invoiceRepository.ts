@@ -1,62 +1,77 @@
-import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { CustomerModel } from "@/models/customer/customer.ts"
-import { InvoiceModel } from "@/models/invoice/invoice.ts"
-import { UUID } from "@/utils/id.ts"
 
-export interface InvoiceRepositoryInterface<Model extends InvoiceModel> extends Repository<Model> {
-    findLastOpenedInvoicesByCustomerId(customerId: CustomerModel["id"]): Promise<InvoiceModel | null>
+import { ModelProps } from "@/interfaces/model.ts"
+import { Repository, RepositoryQuery } from "@/interfaces/repository.ts"
+import { InvoiceModel, InvoiceProps } from "@/models/invoice/invoice.ts"
+
+export interface InvoiceRepositoryInput extends Omit<InvoiceProps, keyof ModelProps> {}
+export interface InvoiceRepositoryOutput extends InvoiceModel {}
+export interface InvoiceRepositoryInterface<Output extends InvoiceRepositoryOutput, Input extends InvoiceRepositoryInput = Output>
+    extends Repository<Output> {
+    findInvoicesByCustomerId(customerId: Output["customer"]["id"]): Promise<Output[]>
+    findLastOpenedInvoicesByCustomerId(customerId: Output["customer"]["id"]): Promise<Output | null>
 }
 
-class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
-    async create(data: InvoiceModel): Promise<void> {
+class InvoiceRepository<
+    Output extends InvoiceRepositoryOutput = InvoiceRepositoryOutput,
+    Input extends InvoiceRepositoryInput = InvoiceRepositoryInput,
+> implements InvoiceRepositoryInterface<Output, Input>
+{
+    public async create(data: Required<Output>): Promise<void> {
         await prisma.invoice.create({
             data: {
                 id: data.id,
-                customer: data.customer,
-                rentals: data.rentals,
                 state: data.state,
                 expiresAt: data.expiresAt,
+                customerId: data.customer.id,
+                rentals: {
+                    connect: data.rentals.map((rental) => ({
+                        id: rental.id,
+                    })),
+                },
             },
         })
     }
 
-    async findAll(): Promise<InvoiceModel[]> {
+    public async findAll(): Promise<Output[]> {
         const invoices = await prisma.invoice.findMany()
 
-        return invoices as InvoiceModel[]
+        // TODO:
+        // change lines like below to use a private method
+        // that converts database return format data to `Output` format explicitly
+        return invoices as Output[]
     }
 
-    async findById(id: UUID): Promise<InvoiceModel | null> {
+    public async findById(id: Output["id"]): Promise<Output | null> {
         const invoice = await prisma.invoice.findUnique({
             where: {
-                id: id.toString(),
+                id: id,
             },
         })
 
-        if (invoice !== null) return invoice as InvoiceModel
+        if (invoice !== null) return invoice as Output
         else return null
     }
 
-    async findOne(filters: Partial<InvoiceModel>): Promise<InvoiceModel | null> {
+    public async findOne(filters: RepositoryQuery<Output>["filters"]): Promise<Output | null> {
         const invoice = await prisma.invoice.findFirst({
             where: filters,
         })
 
-        if (invoice) return invoice as InvoiceModel
+        if (invoice) return invoice as Output
         else return null
     }
 
-    async update(id: UUID, data: Partial<InvoiceModel>): Promise<void> {
+    public async update(id: Output["id"], data: Partial<Output>): Promise<void> {
         await prisma.invoice.update({
             where: {
-                id: id.toString(),
+                id: id,
             },
             data,
         })
     }
 
-    async updateMany(filters: Partial<InvoiceModel>, data: Partial<InvoiceModel>): Promise<number> {
+    public async updateMany(filters: RepositoryQuery<Output>["filters"], data: Partial<Output>): Promise<number> {
         const invoices = await prisma.invoice.updateMany({
             where: filters,
             data,
@@ -65,7 +80,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
         return invoices.count
     }
 
-    async remove(id: UUID): Promise<boolean> {
+    public async remove(id: Output["id"]): Promise<boolean> {
         await prisma.invoice.delete({
             where: {
                 id,
@@ -74,7 +89,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
         return true
     }
 
-    async removeMany(filters: Partial<InvoiceModel>): Promise<number> {
+    public async removeMany(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const invoices = await prisma.invoice.deleteMany({
             where: filters,
         })
@@ -82,7 +97,7 @@ class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
         return invoices.count
     }
 
-    async count(filters: Partial<InvoiceModel>): Promise<number> {
+    public async count(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const counter = await prisma.invoice.count({
             where: filters,
         })
@@ -91,7 +106,20 @@ class InvoiceRepository implements InvoiceRepositoryInterface<InvoiceModel> {
     }
 
     //// ADDITIONAL METHODS ////
-    async findLastOpenedInvoicesByCustomerId(customerId: CustomerModel["id"]): Promise<InvoiceModel | null> {
+    public async findInvoicesByCustomerId(customerId: Output["customer"]["id"]): Promise<Output[]> {
+        const customerInvoices = await prisma.invoice.findMany({
+            where: {
+                customerId: customerId,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        })
+
+        return customerInvoices as Output[]
+    }
+
+    public async findLastOpenedInvoicesByCustomerId(customerId: Output["customer"]["id"]): Promise<Output | null> {
         const invoice = await prisma.invoice.findMany({
             where: {
                 customerId: customerId,

@@ -4,11 +4,15 @@ import { UUID, createUUID, validateUUID } from "@/utils/id.ts"
 export enum VehicleTypeEnum {
     CAR = "car",
     MOTORCYCLE = "motorcycle",
+    TRUCK = "truck",
+    BUS = "bus",
+    TRAILER = "trailer",
+    MOTORHOME = "motorhome",
 }
 
-export interface BaseVehicleProps {
+export interface BaseVehicleProps extends Partial<ModelProps> {
     plate: string
-    vehicleType: VehicleTypeEnum
+    type: VehicleTypeEnum
     brand: string
     model: string
     manufacturingYear: number
@@ -19,7 +23,7 @@ export interface BaseVehicleProps {
     popularity?: number
 }
 
-export interface VehicleModelProps extends BaseVehicleProps, ModelProps {
+export interface VehicleProps extends BaseVehicleProps {
     id: UUID
 }
 
@@ -29,13 +33,13 @@ export interface VehicleModelMethods {
     // updatePopularity(popularity: number): void
 }
 
-export class VehicleModel implements VehicleModelProps, VehicleModelMethods {
+export class VehicleModel implements VehicleProps, VehicleModelMethods {
     public readonly id: UUID
     public readonly createdAt: Date
     public updatedAt: Date
 
     public readonly plate: string
-    public readonly vehicleType: VehicleTypeEnum
+    public readonly type: VehicleTypeEnum
     public readonly brand: string
     public readonly model: string
     public readonly manufacturingYear: number
@@ -46,20 +50,23 @@ export class VehicleModel implements VehicleModelProps, VehicleModelMethods {
     public readonly hourlyRentalRate: number
 
     constructor(props: BaseVehicleProps) {
+        if (typeof props.id !== "string") this.id = createUUID()
+        else if (VehicleModel.validateVehicleId(props.id)) this.id = props.id
+        else throw new Error("Invalid Vehicle Id")
+
         this.plate = props.plate
-        this.vehicleType = props.vehicleType
+        this.type = props.type
         this.brand = props.brand
         this.model = props.model
         this.manufacturingYear = props.manufacturingYear
         this.color = props.color
 
-        this.available = props.available ?? false
+        this.available = props.available ?? true
         this.popularity = props.popularity ?? 0
         this.hourlyRentalRate = props.hourlyRentalRate
 
-        this.id = createUUID()
-        this.createdAt = new Date()
-        this.updatedAt = this.createdAt
+        this.createdAt = props.createdAt ?? new Date()
+        this.updatedAt = props.updatedAt ?? this.createdAt
     }
 
     isAvailable(): boolean {

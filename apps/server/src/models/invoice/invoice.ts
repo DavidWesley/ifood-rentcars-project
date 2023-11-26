@@ -12,7 +12,7 @@ export interface InvoiceProps extends ModelProps {
     rentals: RentalModel[]
     expiresAt: Date
     state: "payed" | "opened" | "canceled" | "expired"
-    // extraServices: Extraservice[]
+    // services: Service[]
 }
 
 export interface invoiceMethods {}
@@ -20,8 +20,7 @@ export interface invoiceMethods {}
 export class InvoiceModel implements InvoiceProps, invoiceMethods {
     public readonly customer: CustomerModel
     public readonly rentals: RentalModel[]
-
-    // public readonly extraServices: ExtraService[]
+    // public readonly services: Service[]
 
     expiresAt: Date
     state: "payed" | "opened" | "canceled" | "expired"

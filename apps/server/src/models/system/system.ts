@@ -2,7 +2,7 @@ import { ModelProps } from "@/interfaces/model.ts"
 import { CustomerModel } from "@/models/customer/customer.ts"
 import { InvoiceModel } from "@/models/invoice/invoice.ts"
 import { RentalModel } from "@/models/rental/rental.ts"
-import { BaseVehicleProps, VehicleModel, VehicleModelProps } from "@/models/vehicle/vehicle.ts"
+import { BaseVehicleProps, VehicleModel, VehicleProps, VehicleTypeEnum } from "@/models/vehicle/vehicle.ts"
 import { CustomerRepositoryInterface, customerRepository } from "@/repositories/customerRepository.ts"
 import { InvoiceRepositoryInterface, invoiceRepository } from "@/repositories/invoiceRepository.ts"
 import { RentalRepositoryInterface, rentalRepository } from "@/repositories/rentalRepository.ts"
@@ -12,9 +12,19 @@ export interface SystemModelProps extends ModelProps {
     id: number
 }
 
-export interface SystemModelMethods {}
+export interface SystemModelMethods {
+    addVehicle<V extends BaseVehicleProps>(vehicleProps: V): Promise<void>
+    addCustomer(customerProps: CustomerModel): Promise<void>
+    rentalVehicle(vehicleId: VehicleProps["id"], customerId: CustomerModel["id"], startDate: Date, endDate: Date): Promise<boolean>
+    returnVehicle(rentalId: RentalModel["id"], returnDate?: Date): Promise<void>
+    listAvailableVehicles(): Promise<VehicleModel[]>
+    listRentedVehicles(): Promise<VehicleModel[]>
+    showCustomerInvoices(customerId: CustomerModel["id"]): Promise<InvoiceModel[]>
+}
 
 export class System implements SystemModelProps, SystemModelMethods {
+    private static lastGeneratedId = 0
+
     protected static instance: System
 
     public readonly id: number
@@ -27,12 +37,16 @@ export class System implements SystemModelProps, SystemModelMethods {
         protected readonly rentalRepo: RentalRepositoryInterface<RentalModel>,
         protected readonly invoiceRepo: InvoiceRepositoryInterface<InvoiceModel>
     ) {
-        this.id = 1
+        if (System.lastGeneratedId > 1) {
+            console.warn("To many instances of system. Last id: " + System.lastGeneratedId)
+        }
+
+        this.id = ++System.lastGeneratedId
         this.createdAt = new Date()
         this.updatedAt = this.createdAt
     }
 
-    static getInstance(): System {
+    public static getInstance(): System {
         if (!(System.instance instanceof System))
             System.instance = new System(customerRepository, vehicleRepository, rentalRepository, invoiceRepository)
 
@@ -56,27 +70,52 @@ export class System implements SystemModelProps, SystemModelMethods {
         await this.customerRepo.create(customer)
     }
 
-    public async rentalVehicle(
-        vehicleId: VehicleModelProps["id"],
-        customerId: CustomerModel["id"],
-        startDate: Date,
-        endDate: Date
-    ): Promise<boolean> {
-        if (CustomerModel.validaCustomerId(customerId) === false) throw new Error("Invalid Customer")
+    public async rentalVehicle(vehicleId: VehicleProps["id"], customerId: CustomerModel["id"], startDate: Date, endDate: Date): Promise<boolean> {
+        // TODO: Lógica de validação
+        // Separar todos os If a seguir em métodos de validação ou use cases
+        if (CustomerModel.validateCustomerId(customerId) === false) throw new Error("Invalid Customer")
         if (VehicleModel.validateVehicleId(vehicleId) === false) throw new Error("Invalid Vehicle")
-
-        const vehicle = await this.vehicleRepo.findById(vehicleId)
-        if (vehicle === null) throw new Error("Vehicle not found")
 
         const customer = await this.customerRepo.findById(customerId)
         if (customer === null) throw new Error("Customer not found")
 
-        if (customer.licenseType.includes("B") === false) throw new Error("Cliente não pode alugar o veículo porque não tem habilitação necessária")
-        if (startDate >= endDate) throw new Error("Invalid Dates")
+        if ((await this.rentalRepo.findLastRentalsByCustomerId(customerId)) !== null) throw new Error("Customer already has a rental")
 
+        const vehicle = await this.vehicleRepo.findById(vehicleId)
+        if (vehicle === null) throw new Error("Vehicle not found")
         if (vehicle.isAvailable() === false) return false
 
-        if ((await this.rentalRepo.findLastVehicleRentalsByCustomerId(customerId)) !== null) throw new Error("Customer already has a rental")
+        // TODO:
+        // separar lógicas a seguir
+        // e criar uma classe para cada categoria de licença
+        // porque a legislação pode mudar a cada ano
+        // LÓGICA:
+        // checar a partir da categoria de licença do usuário se ele pode alugar o veículo em questão pelo tipo de veículo
+        const vehiclesPermissionByLicense = Object.freeze({
+            get A() {
+                return [VehicleTypeEnum.MOTORCYCLE]
+            },
+            get B() {
+                return [VehicleTypeEnum.CAR, VehicleTypeEnum.MOTORHOME, VehicleTypeEnum.TRAILER]
+            },
+            get AB() {
+                return [...this.A, ...this.B]
+            },
+            get C() {
+                return [VehicleTypeEnum.TRUCK, ...this.B]
+            },
+            get D() {
+                return [VehicleTypeEnum.BUS, ...this.C, ...this.B]
+            },
+            get E() {
+                return [...this.B, ...this.C, ...this.D]
+            },
+        })
+
+        if (vehiclesPermissionByLicense[customer.license].includes(vehicle.type) === false)
+            throw new Error(`Customer's license on category ${customer.license} cannot rent this vehicle type: ${vehicle.type}`)
+
+        if (startDate >= endDate) throw new Error("Invalid Dates")
 
         // Lógica do aluguel de veículos
         await this.vehicleRepo.update(vehicleId, { available: false, popularity: vehicle.popularity + 1 })
@@ -87,6 +126,16 @@ export class System implements SystemModelProps, SystemModelMethods {
         await this.rentalRepo.create(rental)
 
         // Lógica da criação de faturas com os dados iniciais do aluguel
+        let lastOpenedInvoice = await this.invoiceRepo.findLastOpenedInvoicesByCustomerId(customerId)
+        if (lastOpenedInvoice === null) {
+            const expiresAtDate = new Date(rental.createdAt)
+            expiresAtDate.setUTCMonth(expiresAtDate.getUTCMonth() + 1)
+            const invoice = new InvoiceModel(customer, [rental], expiresAtDate)
+            await this.invoiceRepo.create(invoice)
+        } else {
+            lastOpenedInvoice.rentals.push(rental)
+            await this.invoiceRepo.update(lastOpenedInvoice.id, { rentals: lastOpenedInvoice.rentals })
+        }
 
         return true
     }
@@ -117,4 +166,41 @@ export class System implements SystemModelProps, SystemModelMethods {
         // Lógica de devolução de veículos
         await this.vehicleRepo.update(vehicle.id, { available: true })
     }
+
+    public async listAvailableVehicles(): Promise<VehicleModel[]> {
+        const availableVehicles = await this.vehicleRepo.findAvailableVehiclesByFilters({})
+        return availableVehicles
+    }
+
+    public async listRentedVehicles(): Promise<VehicleModel[]> {
+        const rentedVehicles = await this.vehicleRepo.findRentedVehiclesByFilters({})
+        return rentedVehicles
+    }
+
+    public async showCustomerInvoices(customerId: CustomerModel["id"]): Promise<InvoiceModel[]> {
+        if (CustomerModel.validateCustomerId(customerId) === false) throw new Error("Invalid Customer")
+
+        const invoices = await this.invoiceRepo.findInvoicesByCustomerId(customerId)
+        return invoices
+    }
+
+    // private async generateInvoiceToCustomer(customerId: CustomerModel["id"], fromDate: Date): Promise<InvoiceModel | null> {
+    //     if (CustomerModel.validateCustomerId(customerId) === false) throw new Error("Invalid Customer")
+
+    //     const customer = await this.customerRepo.findById(customerId)
+    //     if (customer === null) throw new Error("Customer not found")
+
+    //     const customerActiveRentals = await this.rentalRepo.findActiveRentalsByCustomerId(customerId)
+    //     if (customerActiveRentals.length === 0) return null
+
+    //     // TODO:
+    //     // Mudar a forma de calcular a data de expiração do faturamento
+    //     // Recomendado usar alguma biblioteca como date-fns, dayjs, luxon ou utilizar Temporal
+    //     const nextMonth = new Date(fromDate)
+    //     nextMonth.setMonth(nextMonth.getMonth() + 1)
+
+    //     const invoice = new InvoiceModel(customer, customerActiveRentals, nextMonth)
+    //     await this.invoiceRepo.create(invoice)
+    //     return invoice
+    // }
 }

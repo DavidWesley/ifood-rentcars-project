@@ -6,7 +6,7 @@ export class Motorcycle extends VehicleModel {
     constructor(props: BaseMotorcycleProps) {
         super({
             available: true,
-            vehicleType: VehicleTypeEnum.MOTORCYCLE,
+            type: VehicleTypeEnum.MOTORCYCLE,
             brand: props.brand,
             color: props.color,
             hourlyRentalRate: props.hourlyRentalRate,

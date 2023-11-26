@@ -6,7 +6,7 @@ export class Car extends VehicleModel {
     constructor(props: BaseCarProps) {
         super({
             available: true,
-            vehicleType: VehicleTypeEnum.CAR,
+            type: VehicleTypeEnum.CAR,
             brand: props.brand,
             color: props.color,
             hourlyRentalRate: props.hourlyRentalRate,

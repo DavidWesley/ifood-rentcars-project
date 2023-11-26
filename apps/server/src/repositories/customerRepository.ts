@@ -1,21 +1,30 @@
-import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { CustomerModel } from "@/models/customer/customer.ts"
-import { UUID } from "@/utils/id.ts"
 
-export interface CustomerRepositoryInterface<Model extends CustomerModel> extends Repository<Model> {
-    findByCPF(cpf: string): Promise<CustomerModel | null>
+import { ModelProps } from "@/interfaces/model.ts"
+import { Repository, RepositoryQuery } from "@/interfaces/repository.ts"
+import { CustomerModel, CustomerProps } from "@/models/customer/customer.ts"
+
+export interface CustomerRepositoryInput extends Omit<CustomerProps, keyof ModelProps> {}
+export interface CustomerRepositoryOutput extends CustomerModel {}
+
+export interface CustomerRepositoryInterface<Output extends CustomerRepositoryOutput, Input extends CustomerRepositoryInput = Output>
+    extends Repository<Output> {
+    findByCPF(cpf: Output["cpf"]): Promise<Output | null>
 }
 
-class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
-    async create(data: CustomerModel): Promise<void> {
+class CustomerRepository<
+    Output extends CustomerRepositoryOutput = CustomerRepositoryOutput,
+    Input extends CustomerRepositoryInput = CustomerRepositoryInput,
+> implements CustomerRepositoryInterface<Output, Input>
+{
+    public async create(data: Required<Output>): Promise<void> {
         await prisma.customer.create({
             data: {
                 id: data.id,
                 name: data.name,
                 email: data.email,
                 cpf: data.cpf,
-                licenseType: data.licenseType,
+                license: data.license,
                 birthDate: data.birthDate,
                 gender: data.gender,
                 points: data.points,
@@ -23,33 +32,36 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
         })
     }
 
-    async findAll(): Promise<CustomerModel[]> {
+    public async findAll(): Promise<Output[]> {
         const customers = await prisma.customer.findMany()
 
-        return customers as CustomerModel[]
+        // TODO:
+        // change lines like below to use a private method
+        // that converts database return format data to `Output` format explicitly
+        return customers as Output[]
     }
 
-    async findById(id: UUID): Promise<CustomerModel | null> {
+    public async findById(id: Output["id"]): Promise<Output | null> {
         const customer = await prisma.customer.findUnique({
             where: {
                 id: id.toString(),
             },
         })
 
-        if (customer !== null) return customer as CustomerModel
+        if (customer !== null) return customer as Output
         else return null
     }
 
-    async findOne(filters: Partial<CustomerModel>): Promise<CustomerModel | null> {
+    public async findOne(filters: RepositoryQuery<Output>["filters"]): Promise<Output | null> {
         const customer = await prisma.customer.findFirst({
             where: filters,
         })
 
-        if (customer) return customer as CustomerModel
+        if (customer) return customer as Output
         else return null
     }
 
-    async update(id: UUID, data: Partial<CustomerModel>): Promise<void> {
+    public async update(id: Output["id"], data: Partial<Output>): Promise<void> {
         await prisma.customer.update({
             where: {
                 id: id.toString(),
@@ -58,7 +70,7 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
         })
     }
 
-    async updateMany(filters: Partial<CustomerModel>, data: Partial<CustomerModel>): Promise<number> {
+    public async updateMany(filters: RepositoryQuery<Output>["filters"], data: Partial<Output>): Promise<number> {
         const { count } = await prisma.customer.updateMany({
             where: filters,
             data,
@@ -67,7 +79,7 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
         return count
     }
 
-    async remove(id: UUID): Promise<boolean> {
+    public async remove(id: Output["id"]): Promise<boolean> {
         const deletedCustomer = await prisma.customer.delete({
             where: {
                 id,
@@ -78,7 +90,7 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
         else return false
     }
 
-    async removeMany(filters: Partial<CustomerModel>): Promise<number> {
+    public async removeMany(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const { count } = await prisma.customer.deleteMany({
             where: filters,
         })
@@ -86,7 +98,7 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
         return count
     }
 
-    async count(filters: Partial<CustomerModel>): Promise<number> {
+    public async count(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const counter = await prisma.customer.count({
             where: filters,
         })
@@ -96,14 +108,14 @@ class CustomerRepository implements CustomerRepositoryInterface<CustomerModel> {
 
     //// ADDITIONAL METHODS ////
 
-    async findByCPF(cpf: string): Promise<CustomerModel | null> {
+    public async findByCPF(cpf: Output["cpf"]): Promise<Output | null> {
         const customer = await prisma.customer.findFirst({
             where: {
                 cpf: cpf,
             },
         })
 
-        if (customer !== null) return customer as CustomerModel
+        if (customer !== null) return customer as Output
         else return null
     }
 }

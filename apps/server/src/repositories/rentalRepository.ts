@@ -1,56 +1,65 @@
-import { Repository } from "@/interfaces/repository.ts"
 import { prisma } from "@/libs/prisma.ts"
-import { CustomerModel } from "@/models/customer/customer.ts"
-import { RentalModel } from "@/models/rental/rental.ts"
-import { VehicleModel } from "@/models/vehicle/vehicle.ts"
-import { UUID } from "@/utils/id.ts"
 
-export interface RentalRepositoryInterface<Model extends RentalModel> extends Repository<Model> {
-    findVehiclesRentalsById(vehicleId: UUID): Promise<RentalModel[]>
-    findVehiclesRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel[]>
-    findLastVehicleRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel | null>
+import { ModelProps } from "@/interfaces/model.ts"
+import { Repository, RepositoryQuery } from "@/interfaces/repository.ts"
+import { RentalModel, RentalProps } from "@/models/rental/rental.ts"
+
+export interface RentalRepositoryInput extends Omit<RentalProps, keyof ModelProps> {}
+export interface RentalRepositoryOutput extends RentalModel {}
+
+export interface RentalRepositoryInterface<Output extends RentalRepositoryOutput, Input extends RentalRepositoryInput = Output>
+    extends Repository<Output> {
+    findRentalsByCustomerId(customerId: Output["customer"]["id"]): Promise<Output[]>
+    findLastRentalsByCustomerId(customerId: Output["customer"]["id"]): Promise<Output | null>
+    findActiveRentalsByCustomerId(customerId: Output["customer"]["id"]): Promise<Output[]>
 }
 
-class RentalRepository implements RentalRepositoryInterface<RentalModel> {
-    async create(data: RentalModel): Promise<void> {
+class RentalRepository<Output extends RentalRepositoryOutput = RentalRepositoryOutput, Input extends RentalRepositoryInput = RentalRepositoryInput>
+    implements RentalRepositoryInterface<Output, Input>
+{
+    public async create(data: Required<Output>): Promise<void> {
         await prisma.rental.create({
             data: {
                 id: data.id,
-                customerId: data.costumer.id,
-                vehicleId: data.vehicle.id,
                 startDate: data.startDate,
                 endDate: data.endDate,
-                totalAmount: data.calculateTotalAmount(),
+                customerId: data.customer.id,
+                vehicleId: data.vehicle.id,
+                state: data.state,
+                amount: data.calculateTotalAmount(),
             },
         })
     }
-    async findAll(): Promise<RentalModel[]> {
+    public async findAll(): Promise<Output[]> {
         const rentals = await prisma.rental.findMany()
 
-        return rentals as RentalModel[]
+        // TODO:
+        // change lines like below to use a private method
+        // that converts database return format data to `Output` format explicitly
+        return rentals as Output[]
     }
 
-    async findById(id: UUID): Promise<RentalModel | null> {
+    public async findById(id: Output["id"]): Promise<Output | null> {
         const rental = await prisma.rental.findUnique({
             where: {
                 id: id.toString(),
             },
         })
 
-        if (rental != null) return rental as RentalModel
+        if (rental != null) return rental as Output
         else return null
     }
 
-    async findOne(filters: Partial<RentalModel>): Promise<RentalModel | null> {
+    public async findOne(filters: RepositoryQuery<Output>["filters"]): Promise<Output | null> {
         const rental = await prisma.rental.findFirst({
             where: filters,
         })
 
-        if (rental) return rental as RentalModel
+        if (rental) return rental as Output
         else return null
     }
 
-    async update(id: UUID, data: Partial<RentalModel>): Promise<void> {
+    public async update(id: Output["id"], data: Partial<Output>): Promise<void> {
         await prisma.rental.update({
             where: {
                 id: id.toString(),
@@ -59,7 +68,7 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
         })
     }
 
-    async updateMany(filters: Partial<RentalModel>, data: Partial<RentalModel>): Promise<number> {
+    public async updateMany(filters: RepositoryQuery<Output>["filters"], data: Partial<Output>): Promise<number> {
         const updatedRentals = await prisma.rental.updateMany({
             where: filters,
             data,
@@ -68,7 +77,7 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
         return updatedRentals.count
     }
 
-    async remove(id: UUID): Promise<boolean> {
+    public async remove(id: Output["id"]): Promise<boolean> {
         await prisma.rental.delete({
             where: {
                 id,
@@ -78,7 +87,7 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
         return true
     }
 
-    async removeMany(filters: Partial<RentalModel>): Promise<number> {
+    public async removeMany(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const removedRentals = await prisma.rental.deleteMany({
             where: filters,
         })
@@ -86,7 +95,7 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
         return removedRentals.count
     }
 
-    async count(filters: Partial<RentalModel>): Promise<number> {
+    public async count(filters: RepositoryQuery<Output>["filters"]): Promise<number> {
         const rentals = await prisma.rental.count({
             where: filters,
         })
@@ -96,31 +105,17 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
 
     //// ADDITIONAL METHODS ////
 
-    async findVehiclesRentalsById(vehicleId: VehicleModel["id"]): Promise<RentalModel[]> {
-        const vehicleRentals = await prisma.rental.findMany({
-            where: {
-                vehicleId,
-            },
-            orderBy: {
-                endDate: "desc",
-            },
-        })
-
-        if (vehicleRentals) return vehicleRentals as RentalModel[]
-        else return []
-    }
-
-    async findVehiclesRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel[]> {
+    public async findRentalsByCustomerId(customerId: Output["customer"]["id"]): Promise<Output[]> {
         const customerRentals = await prisma.rental.findMany({
             where: {
                 customerId,
             },
         })
 
-        return customerRentals as RentalModel[]
+        return customerRentals as Output[]
     }
 
-    async findLastVehicleRentalsByCustomerId(customerId: CustomerModel["id"]): Promise<RentalModel | null> {
+    public async findLastRentalsByCustomerId(customerId: Output["customer"]["id"]): Promise<Output | null> {
         const lastCustomerRental = await prisma.rental.findFirst({
             where: {
                 customerId: customerId,
@@ -131,8 +126,19 @@ class RentalRepository implements RentalRepositoryInterface<RentalModel> {
             },
         })
 
-        if (lastCustomerRental) return lastCustomerRental as RentalModel
+        if (lastCustomerRental) return lastCustomerRental as Output
         else return null
+    }
+
+    public async findActiveRentalsByCustomerId(customerId: Output["customer"]["id"]): Promise<Output[]> {
+        const customerActiveRentals = await prisma.rental.findMany({
+            where: {
+                customerId,
+                state: "active",
+            },
+        })
+
+        return customerActiveRentals as Output[]
     }
 }
 
