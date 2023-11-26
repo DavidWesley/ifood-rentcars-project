@@ -5,6 +5,8 @@ import { StatusCodes } from "http-status-codes"
 
 import { ENV } from "@/libs/env.ts"
 import { logger } from "@/libs/logger.ts"
+
+import { rentalRoutes } from "@/routes/rentalRoutes.ts"
 import { vehicleRoutes } from "@/routes/vehicleRoutes.ts"
 
 export const server = Fastify({
@@ -33,4 +35,5 @@ server.get("/check", async (_, res) => {
 })
 
 //// ROUTES ////
+server.register(rentalRoutes, { prefix: "/rentals" })
 server.register(vehicleRoutes, { prefix: "/vehicle" })
