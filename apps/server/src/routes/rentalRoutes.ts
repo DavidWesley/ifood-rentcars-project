@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify"
 
 import { RentalController } from "@/controllers/rentalController.ts"
 
-export const rentalRoutes = (app: FastifyInstance) => {
+export const rentalRoutes = async (app: FastifyInstance) => {
     app.get("/", RentalController.getAll)
     app.get("/:id", RentalController.getById)
 
