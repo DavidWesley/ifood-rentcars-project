@@ -1,13 +1,13 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  output   = "../../../node_modules/.prisma/client"
 }
 
-// generator dbml {
-//   provider   = "prisma-dbml-generator"
-//   output     = "./dbml"
-//   outputName = "schema.dbml"
-// }
+generator dbml {
+  provider   = "prisma-dbml-generator"
+  output     = "./dbml"
+  outputName = "schema.dbml"
+}
 
 datasource db {
   provider = "postgresql"
