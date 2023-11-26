@@ -14,7 +14,9 @@ export interface SystemModelProps extends ModelProps {
 
 export interface SystemModelMethods {
     addVehicle<V extends BaseVehicleProps>(vehicleProps: V): Promise<void>
+    removeVehicle(plate: VehicleModel["plate"]): Promise<void>
     addCustomer(customerProps: CustomerModel): Promise<void>
+    removeCustomer(cpf: CustomerModel["cpf"]): Promise<void>
     rentalVehicle(plate: VehicleProps["plate"], cpf: CustomerModel["cpf"], startDate: Date, endDate: Date): Promise<boolean>
     returnVehicle(cpf: CustomerModel["cpf"], plate: VehicleModel["plate"], returnDate?: Date): Promise<void>
     listAvailableVehicles(): Promise<VehicleModel[]>
@@ -183,6 +185,27 @@ export class System implements SystemModelProps, SystemModelMethods {
 
         const invoices = await this.invoiceRepo.findInvoicesByCustomerId(customerId)
         return invoices
+    }
+
+    public async removeVehicle(plate: VehicleModel["plate"]): Promise<void> {
+        const vehicle = await this.vehicleRepo.findByPlate(plate)
+        if (vehicle === null) throw new Error("Vehicle not found")
+        if (vehicle.isAvailable()) throw new Error("Vehicle is in use, can't be removed")
+
+        await this.vehicleRepo.remove(vehicle.id)
+    }
+
+    public async removeCustomer(cpf: CustomerModel["cpf"]): Promise<void> {
+        const customer = await this.customerRepo.findByCPF(cpf)
+        if (customer === null) throw new Error("Customer not found")
+
+        const activeRentalsCustomer = await this.rentalRepo.findActiveRentalsByCustomerId(customer.id)
+        if (activeRentalsCustomer.length > 0) throw new Error("Customer has active rentals, can't be removed")
+
+        const pendentInvoicesCustomer = await this.invoiceRepo.findLastOpenedInvoicesByCustomerId(customer.id)
+        if (pendentInvoicesCustomer !== null) throw new Error("Customer has pendent invoices, can't be removed")
+
+        await this.customerRepo.remove(customer.id)
     }
 
     // private async generateInvoiceToCustomer(customerId: CustomerModel["id"], fromDate: Date): Promise<InvoiceModel | null> {
