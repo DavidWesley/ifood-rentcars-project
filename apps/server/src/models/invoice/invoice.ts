@@ -22,8 +22,8 @@ export class InvoiceModel implements InvoiceProps, invoiceMethods {
     public readonly rentals: RentalModel[]
     // public readonly services: Service[]
 
-    expiresAt: Date
-    state: "payed" | "opened" | "canceled" | "expired"
+    public readonly expiresAt: Date
+    public state: "payed" | "opened" | "canceled" | "expired"
 
     public readonly id: UUID
     public readonly createdAt: Date
