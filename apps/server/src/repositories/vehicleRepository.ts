@@ -1,4 +1,5 @@
 import { prisma } from "@/libs/prisma.ts"
+import { Vehicle } from "@prisma/client"
 
 import { ModelProps } from "@/interfaces/model.ts"
 import { Repository, RepositoryQuery } from "@/interfaces/repository.ts"
@@ -23,6 +24,25 @@ class VehicleRepository<
     Input extends VehicleRepositoryInput = VehicleRepositoryInput,
 > implements VehicleRepositoryInterface<Output, Input>
 {
+    private convertDataBaseDataTypeToOutput(data: Vehicle): Output {
+        const props: VehicleProps = {
+            id: data.id as Output["id"],
+            plate: data.plate,
+            type: data.type as Output["type"],
+            brand: data.brand,
+            model: data.model,
+            manufacturingYear: data.manufacturingYear,
+            color: data.color,
+            available: data.available,
+            hourlyRentalRate: data.hourlyRentalRate,
+            popularity: data.popularity,
+            mass: data.mass,
+        }
+
+        const vehicle = new VehicleModel(props)
+        return vehicle as Output
+    }
+
     public async create(data: Required<Output>): Promise<void> {
         await prisma.vehicle.create({
             data: {
@@ -57,7 +77,7 @@ class VehicleRepository<
             },
         })
 
-        if (vehicle != null) return vehicle as Output
+        if (vehicle != null) return this.convertDataBaseDataTypeToOutput(vehicle)
         else return null
     }
 
@@ -66,7 +86,7 @@ class VehicleRepository<
             where: filters,
         })
 
-        if (vehicle) return vehicle as Output
+        if (vehicle) return this.convertDataBaseDataTypeToOutput(vehicle)
         else return null
     }
 
@@ -122,7 +142,7 @@ class VehicleRepository<
             },
         })
 
-        if (vehicle) return vehicle as unknown as Output
+        if (vehicle) return this.convertDataBaseDataTypeToOutput(vehicle)
         else return null
     }
 
@@ -137,7 +157,7 @@ class VehicleRepository<
             },
         })
 
-        return availableVehiclesByType as Output[]
+        return availableVehiclesByType.map(this.convertDataBaseDataTypeToOutput)
     }
 
     async findAvailableVehiclesByType(type: Output["type"]): Promise<Output[]> {
@@ -151,7 +171,7 @@ class VehicleRepository<
             },
         })
 
-        return availableVehiclesByType as Output[]
+        return availableVehiclesByType.map(this.convertDataBaseDataTypeToOutput)
     }
     public async findAvailableVehiclesByBrand(brand: Output["brand"]): Promise<Output[]> {
         const availableVehiclesByBrand = await prisma.vehicle.findMany({
@@ -164,7 +184,7 @@ class VehicleRepository<
             },
         })
 
-        return availableVehiclesByBrand as Output[]
+        return availableVehiclesByBrand.map(this.convertDataBaseDataTypeToOutput)
     }
 
     public async findAvailableVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]> {
@@ -180,7 +200,7 @@ class VehicleRepository<
             },
         })
 
-        return availableVehiclesByFilters as Output[]
+        return availableVehiclesByFilters.map(this.convertDataBaseDataTypeToOutput)
     }
 
     public async findRentedVehiclesByFilters(filters: RepositoryQuery<Output>["filters"]): Promise<Output[]> {
@@ -196,7 +216,7 @@ class VehicleRepository<
             },
         })
 
-        return rentedVehiclesByFilters as Output[]
+        return rentedVehiclesByFilters.map(this.convertDataBaseDataTypeToOutput)
     }
 
     async calculateTax(vehicleType: Input["type"]): Promise<number> {
