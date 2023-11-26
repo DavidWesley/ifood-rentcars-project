@@ -21,7 +21,7 @@
     "test": "vitest --watch false",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "start": "tsx --env-file=.env src/main.ts",
+    "start": "node --env-file=.env dist/main.js",
     "dev": "cross-env PORT=3333 tsx watch --env-file=.env src/main.ts ",
     "build": "tsup --config tsup.config.ts src"
   },
