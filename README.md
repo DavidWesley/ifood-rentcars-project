@@ -4,7 +4,6 @@
 
 Bem-vindo ao repositório do projeto rentcars Project desenvolvido como parte do bootcamp do iFood!
 Este é um aplicativo simples de aluguel de carros desenvolvido em equipe durante o bootcamp do iFood.
-Desenvolvido com paixão e aprendizado ao longo do bootcamp, o Rentcars Project.
 
 ## Recursos Destacados:
 
@@ -28,6 +27,8 @@ Desenvolvido com paixão e aprendizado ao longo do bootcamp, o Rentcars Project.
 
 ## Relacionamento das Entidades
 ![image](assets/rentcars-diagram.png)
+
+A versão mais atualizada da imagem acima pode se encontrada em [Diagrama](https://dbdiagram.io/d/rentcars-diagram-656230e23be1495787b943c8)
 
 
 ## Equipe
