@@ -11,4 +11,5 @@ export default defineConfig({
   platform: "node",
   keepNames: true,
   tsconfig: "./tsconfig.build.json",
+  cjsInterop: true,
 })

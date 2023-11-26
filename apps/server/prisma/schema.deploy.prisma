@@ -1,0 +1,102 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model VehicleType {
+    type        String    @id @unique
+    description String?
+    tax         Float     @default(1.0)
+    Vehicle     Vehicle[]
+
+    @@map("vehicle_types")
+}
+
+model LicenseType {
+    type        String     @id @unique
+    description String?
+    Customer    Customer[]
+
+    @@map("license_types")
+}
+
+model Vehicle {
+    id                String      @id @default(uuid())
+    plate             String      @unique
+    model             String
+    brand             String
+    manufacturingYear Int         @map("manufacturing_year")
+    color             String
+    type              String
+    hourlyRentalRate  Float       @map("hourly_rental_rete")
+    available         Boolean     @default(true)
+    popularity        Int
+    mass              Float
+    Rental            Rental[]
+    VehicleType       VehicleType @relation(fields: [type], references: [type])
+
+    @@map("vehicles")
+}
+
+model Customer {
+    id          String      @id @default(uuid())
+    createdAt   DateTime    @default(now()) @map("created_at")
+    updatedAt   DateTime    @updatedAt @map("updated_at")
+    name        String
+    email       String      @unique
+    cpf         String      @unique
+    birthDate   DateTime
+    gender      String
+    license     String
+    points      Int
+    licenseType LicenseType @relation(fields: [license], references: [type])
+    Rental      Rental[]
+
+    @@map("customers")
+}
+
+model Rental {
+    id         String   @id @default(uuid())
+    createdAt  DateTime @default(now()) @map("created_at")
+    updatedAt  DateTime @updatedAt @map("updated_at")
+    startDate  DateTime
+    endDate    DateTime
+    amount     Float
+    state      String   @default("active")
+    customerId String
+    vehicleId  String
+    invoiceId  String?
+    Customer   Customer @relation(fields: [customerId], references: [id])
+    Invoice    Invoice? @relation(fields: [invoiceId], references: [id])
+    Vehicle    Vehicle  @relation(fields: [vehicleId], references: [id])
+
+    @@map("rentals")
+}
+
+model Invoice {
+    id         String    @id @default(uuid())
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
+    expiresAt  DateTime  @map("expires_at")
+    customerId String    @unique
+    state      String    @default("opened")
+    rentals    Rental[]
+    services   Service[]
+
+    @@map("invoices")
+}
+
+model Service {
+    id          String   @id @default(uuid())
+    description String
+    cost        Float
+    invoiceId   String?
+    Invoice     Invoice? @relation(fields: [invoiceId], references: [id])
+
+    @@map("services")
+}

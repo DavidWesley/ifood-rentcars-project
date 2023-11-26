@@ -1,13 +1,14 @@
 import { ENV } from "@/libs/env.ts"
-import type { Prisma } from "@prisma/client"
-import { PrismaClient } from "@prisma/client"
+import * as pkg from "@prisma/client"
+
+const { PrismaClient } = pkg
 
 declare global {
     // eslint-disable-next-line no-var
     var prisma: PrismaClient | undefined
 }
 
-export const prismaClientOptions: Prisma.PrismaClientOptions = {
+export const prismaClientOptions = {
     log: [
         { emit: "event", level: "query" },
         { emit: "stdout", level: "error" },
