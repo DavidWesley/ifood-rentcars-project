@@ -34,7 +34,7 @@ Table vehicles {
 Table customers {
   id String [pk]
   createdAt DateTime [default: `now()`, not null]
-  updateAt DateTime [not null]
+  updatedAt DateTime [not null]
   name String [not null]
   email String [unique, not null]
   cpf String [unique, not null]
@@ -49,7 +49,7 @@ Table customers {
 Table rentals {
   id String [pk]
   createdAt DateTime [default: `now()`, not null]
-  updateAt DateTime [not null]
+  updatedAt DateTime [not null]
   startDate DateTime [not null]
   endDate DateTime [not null]
   amount Float [not null]
@@ -65,7 +65,7 @@ Table rentals {
 Table invoices {
   id String [pk]
   createdAt DateTime [default: `now()`, not null]
-  updateAt DateTime [not null]
+  updatedAt DateTime [not null]
   expiresAt DateTime [not null]
   customerId String [unique, not null]
   state String [not null, default: 'opened']

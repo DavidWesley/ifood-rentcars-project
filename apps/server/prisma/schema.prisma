@@ -53,7 +53,7 @@ model Vehicle {
 model Customer {
   id          String      @id @default(uuid())
   createdAt   DateTime    @default(now()) @map("created_at")
-  updateAt    DateTime    @updatedAt @map("updated_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
   name        String
   email       String      @unique
   cpf         String      @unique
@@ -70,7 +70,7 @@ model Customer {
 model Rental {
   id         String   @id @default(uuid())
   createdAt  DateTime @default(now()) @map("created_at")
-  updateAt   DateTime @updatedAt @map("updated_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
   startDate  DateTime
   endDate    DateTime
   amount     Float
@@ -88,7 +88,7 @@ model Rental {
 model Invoice {
   id         String    @id @default(uuid())
   createdAt  DateTime  @default(now()) @map("created_at")
-  updateAt   DateTime  @updatedAt @map("updated_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
   expiresAt  DateTime  @map("expires_at")
   customerId String    @unique
   state      String    @default("opened")
