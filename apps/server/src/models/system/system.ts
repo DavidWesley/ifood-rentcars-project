@@ -15,8 +15,8 @@ export interface SystemModelProps extends ModelProps {
 export interface SystemModelMethods {
     addVehicle<V extends BaseVehicleProps>(vehicleProps: V): Promise<void>
     addCustomer(customerProps: CustomerModel): Promise<void>
-    rentalVehicle(vehicleId: VehicleProps["id"], customerId: CustomerModel["id"], startDate: Date, endDate: Date): Promise<boolean>
-    returnVehicle(rentalId: RentalModel["id"], returnDate?: Date): Promise<void>
+    rentalVehicle(plate: VehicleProps["plate"], cpf: CustomerModel["cpf"], startDate: Date, endDate: Date): Promise<boolean>
+    returnVehicle(cpf: CustomerModel["cpf"], plate: VehicleModel["plate"], returnDate?: Date): Promise<void>
     listAvailableVehicles(): Promise<VehicleModel[]>
     listRentedVehicles(): Promise<VehicleModel[]>
     showCustomerInvoices(customerId: CustomerModel["id"]): Promise<InvoiceModel[]>
@@ -70,18 +70,19 @@ export class System implements SystemModelProps, SystemModelMethods {
         await this.customerRepo.create(customer)
     }
 
-    public async rentalVehicle(vehicleId: VehicleProps["id"], customerId: CustomerModel["id"], startDate: Date, endDate: Date): Promise<boolean> {
+    public async rentalVehicle(plate: VehicleProps["plate"], cpf: CustomerModel["cpf"], startDate: Date, endDate: Date): Promise<boolean> {
         // TODO: Lógica de validação
         // Separar todos os If a seguir em métodos de validação ou use cases
-        if (CustomerModel.validateCustomerId(customerId) === false) throw new Error("Invalid Customer")
-        if (VehicleModel.validateVehicleId(vehicleId) === false) throw new Error("Invalid Vehicle")
 
-        const customer = await this.customerRepo.findById(customerId)
+        // Validações baratas
+        if (startDate >= endDate) throw new Error("Invalid Dates")
+
+        const customer = await this.customerRepo.findByCPF(cpf)
         if (customer === null) throw new Error("Customer not found")
 
-        if ((await this.rentalRepo.findLastRentalsByCustomerId(customerId)) !== null) throw new Error("Customer already has a rental")
+        if ((await this.rentalRepo.findLastRentalsByCustomerId(customer.id)) !== null) throw new Error("Customer already has a rental")
 
-        const vehicle = await this.vehicleRepo.findById(vehicleId)
+        const vehicle = await this.vehicleRepo.findByPlate(plate)
         if (vehicle === null) throw new Error("Vehicle not found")
         if (vehicle.isAvailable() === false) return false
 
@@ -96,12 +97,14 @@ export class System implements SystemModelProps, SystemModelMethods {
                 return [VehicleTypeEnum.MOTORCYCLE]
             },
             get B() {
+                // TODO: Pedente calcular a massa do veículo alugado para validação
                 return [VehicleTypeEnum.CAR, VehicleTypeEnum.MOTORHOME, VehicleTypeEnum.TRAILER]
             },
             get AB() {
                 return [...this.A, ...this.B]
             },
             get C() {
+                // TODO: Pedente calcular a idade maior que 21 anos do cliente e a massa do veículo alugado para validação
                 return [VehicleTypeEnum.TRUCK, ...this.B]
             },
             get D() {
@@ -115,18 +118,14 @@ export class System implements SystemModelProps, SystemModelMethods {
         if (vehiclesPermissionByLicense[customer.license].includes(vehicle.type) === false)
             throw new Error(`Customer's license on category ${customer.license} cannot rent this vehicle type: ${vehicle.type}`)
 
-        if (startDate >= endDate) throw new Error("Invalid Dates")
-
         // Lógica do aluguel de veículos
-        await this.vehicleRepo.update(vehicleId, { available: false, popularity: vehicle.popularity + 1 })
-
-        // Lógica do aluguel de veículos
-        const rental = new RentalModel(customer, vehicle, startDate, endDate)
-
+        await this.vehicleRepo.update(vehicle.id, { available: false, popularity: vehicle.popularity + 1 })
+        const tax = await this.vehicleRepo.calculateTax(vehicle.type)
+        const rental = new RentalModel(customer, vehicle, tax, startDate, endDate)
         await this.rentalRepo.create(rental)
 
         // Lógica da criação de faturas com os dados iniciais do aluguel
-        let lastOpenedInvoice = await this.invoiceRepo.findLastOpenedInvoicesByCustomerId(customerId)
+        let lastOpenedInvoice = await this.invoiceRepo.findLastOpenedInvoicesByCustomerId(customer.id)
         if (lastOpenedInvoice === null) {
             const expiresAtDate = new Date(rental.createdAt)
             expiresAtDate.setUTCMonth(expiresAtDate.getUTCMonth() + 1)
@@ -140,16 +139,18 @@ export class System implements SystemModelProps, SystemModelMethods {
         return true
     }
 
-    public async returnVehicle(rentalId: RentalModel["id"], returnDate?: Date): Promise<void> {
-        if (RentalModel.validateRentalId(rentalId) === false) throw new Error("Invalid Rental")
+    public async returnVehicle(cpf: CustomerModel["cpf"], plate: VehicleModel["plate"], returnDate?: Date): Promise<void> {
+        const customer = await this.customerRepo.findByCPF(cpf)
+        if (customer === null) throw new Error("Customer not found")
 
-        const rental = await this.rentalRepo.findById(rentalId)
+        const vehicle = await this.vehicleRepo.findByPlate(plate)
+        if (vehicle === null) throw new Error("Vehicle not found")
+
+        const rental = await this.rentalRepo.findLastRentalsByCustomerId(customer.id)
         if (rental === null) throw new Error("Rental not found")
 
         if (rental.state !== "active") throw new Error("Rental is not active")
-
-        const vehicle = await this.vehicleRepo.findById(rental.vehicle.id)
-        if (vehicle === null) throw new Error("Vehicle not found")
+        if (rental.vehicle.id !== vehicle.id) throw new Error("Rental is not for this vehicle")
 
         returnDate = returnDate ?? new Date()
 
@@ -164,7 +165,7 @@ export class System implements SystemModelProps, SystemModelMethods {
         // Lógica para atualizar o cálculo do custo total do aluguel do veículo incluindo as tarifas extras caso existam
 
         // Lógica de devolução de veículos
-        await this.vehicleRepo.update(vehicle.id, { available: true })
+        await this.vehicleRepo.update(rental.vehicle.id, { available: true })
     }
 
     public async listAvailableVehicles(): Promise<VehicleModel[]> {
